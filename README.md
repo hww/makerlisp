@@ -22,13 +22,17 @@ The slides for this talk are available under Documentation on that page.  A sour
   
 ## MakerLisp Source Preview
 
-To build a MakerLisp demonstration on Linux:
+To build a MakerLisp demonstration on Linux, _cd_ to _preview_ folder and:
 
-Unzip preview1.zip, the contents will be deposited in ./preview. 
+```bash
+gcc -olisp -O3 -Wall -I. lisp.c platform.c -lm
+```
 
-In ./preview, compile: cc -olisp -O3 -Wall -I. lisp.c platform.c -lm
+To start lisp
 
+```bash
 Start: ./lisp
+```
 
 There are demonstration programs/functions in ./preview, for example, 'cat.l', 'hello.l', 'fact.l', and 'sieve.l'. At the MakerLisp (">") prompt, start a program by using the name of the file, minus the extension, as the function name, for example "(hello)", "(fact 4)", "(sieve 30)", or "(cat 'cat.l)".
 
