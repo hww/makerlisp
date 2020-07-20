@@ -1,0 +1,39 @@
+MakerLisp Version 1.3
+#!lisp.sh
+;Comment
+;Comment^?
+;Comment^H
+'Symbol
+Symbol
+'Symbol^?
+Symbo
+'Symbol^H
+Symbo
+;^?'Symbol
+Symbol
+; A comment
+;^?'"Not a comment"
+Not a comment
+;^H'"Not a comment"
+Not a comment
+\;; Also not a comment
+? Unbound variable: ";"
+\^?; But this is
+'\97; Decimal character constant
+a
+'\97^?^?^?"Now it's a symbol"
+Now it's a symbol
+'\097; Bad octal character constant
+? Improper character constant
+'\065; Good octal character constant
+5
+'\x35; Hex character constant
+5
+'\x35z; Bad hex character constant
+5z
+'"" 
+; comment after expression
+'( ; comment in expression 
+())
+(())
+Bytes: 19488/21664, Symbols: 72, Hits: 350/582, Collections: 126

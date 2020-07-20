@@ -1,0 +1,85 @@
+MakerLisp Version 1.3
+#!lisp.sh
+
+; Test coroutines using continuations
+(include '<makerlisp.l>)
+
+(verbose 99)
+0
+
+(define resume (macro (t) `(setq ,t (call/cc ,t))))
+(() (t) (LOADC #Address (backquote (setq (unquote t) (call/cc (unquote t))))))
+
+(define task1
+  (lambda (k)
+    (let ((t2 task2))
+      (print '"Part A\n")
+      (print '"task1 starting task2\n")
+      (resume t2)
+      (print '"Part B\n")
+      (print '"Part C\n")
+      (print '"task1 resuming task2\n")
+      (resume t2)
+      (print '"task1 finishing\n")
+      (k 0))))
+(#Address (k) (LOADC #Address (let ((t2 task2)) (print (quote "Part A\n")) (print (quote "task1 starting task2\n")) (resume t2) (print (quote "Part B\n")) (print (quote "Part C\n")) (print (quote "task1 resuming task2\n")) (resume t2) (print (quote "task1 finishing\n")) (k 0))))
+
+(define task2
+  (lambda (k)
+    (let ((t1 k))
+      (print '"Part D\n")
+      (print '"Part E\n")
+      (print '"task2 resuming task1\n")
+      (resume t1)
+      (print '"Part F\n")
+      (print '"task2 finishing, resuming task1\n")
+      (resume t1))))
+(#Address (k) (LOADC #Address (let ((t1 k)) (print (quote "Part D\n")) (print (quote "Part E\n")) (print (quote "task2 resuming task1\n")) (resume t1) (print (quote "Part F\n")) (print (quote "task2 finishing, resuming task1\n")) (resume t1))))
+
+(print '"Starting task1\n")
+Starting task1
+(call/cc task1)
+; 'let' using lambda, bind all at once
+(define let
+  (macro (bind . body)
+
+    (forget 'let)
+
+    (define vars
+      (lambda (b)
+        (if (not b)
+          '()
+          (cons (caar b) (vars (cdr b))))))
+
+    (define vals
+      (lambda (b)
+        (if (not b)
+          '()
+          (cons (cadar b) (vals (cdr b))))))
+
+    `((lambda ,(vars bind) ,@body) ,@(vals bind))))
+(define cadar
+  (macro (x)
+    (forget 'cadar)
+   `(car (cdar ,x))))
+(define cdar
+  (macro (x)
+    (forget 'cdar)
+   `(cdr (car ,x))))
+(define caar
+  (macro (x)
+    (forget 'caar)
+   `(car (car ,x))))
+Part A
+task1 starting task2
+Part D
+Part E
+task2 resuming task1
+Part B
+Part C
+task1 resuming task2
+Part F
+task2 finishing, resuming task1
+task1 finishing
+0
+Bytes: 29760/32304, Symbols: 98, Hits: 590/890, Collections: 130

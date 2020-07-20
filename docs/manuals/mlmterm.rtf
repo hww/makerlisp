@@ -1,0 +1,206 @@
+{\rtf1\ansi
+\deff0\uc1
+{\fonttbl
+{\f0\fswiss\fcharset0Helvetica;}
+}
+{\*\generator Ted 2.23, Feb 4, 2013 (http://www.nllgg.nl/Ted);}
+{\info
+{\creatim\yr2019\mo3\dy6\hr11\min36\sec10}
+{\revtim\yr2020\mo3\dy15\hr8\min56\sec48}
+}
+\fet0\aftntj\aftnnrlc
+\sectd
+\saftnnar\f0\fs24MakerLisp Machine VGA Display Terminal Emulation\par
+\par
+I. Overview\par
+\par
+The MakerLisp Machine terminal emulates a compatible subset of the DEC 
+vt5xx (vt510, vt520, or vt525) series of ANSI terminals, operating in 
+SCO Unix Console emulation mode, with newline mode on.\par
+\par
+There are two parts to the MakerLisp VGA terminal - the USB keyboard 
+controller, and the VGA display controller.\par
+\par
+The USB keyboard controller sends out ASCII character sequences from 
+keyboard activity, like the DEC vt5xx terminals in SCO/newline mode, 
+except that:\par
+\par
+1) The "Alt" modifier key is ignored\par
+2) "Ctrl" in combination with shifted or unshifted F1-F12, has no effect
+\par
+3) The editing keys (except for forward delete), Prnt Scrn, Scroll 
+Lock, and Pause/Break, have no effect.\par
+\par
+These key events will be supported in a future release.\par
+\par
+The VGA display controller's terminal emulator uses X-ON/X-OFF flow 
+control, to keep the MakerLisp Machine CPU from overrunning the 
+terminal emulator's 256 character buffer. This flow control is on all 
+the time.\par
+\par
+II. ANSI Terminal Emulator\par
+\par
+The terminal emulator supports a very small subset of vt5xx ANSI escape 
+sequence commands, listed below, as well as a few other ANSI-like, but 
+specific to the MakerLisp Machine, escape sequences. Some of the 
+MakerLisp-specific commands have different effects in different display 
+modes (see section III below).\par
+\par
+A more capable subset of vt5xx-compatible escape sequences will be 
+implemented in a future release.\par
+\par
+vt5xx-compatible ANSI commands ('\\e' is "escape", ASCII 27 decimal):
+\par
+\par
+\\e[2J\tab\tab\tab Clear screen\par
+\\e[p1;p2H\tab\tab Position or home cursor\par
+\par
+p1 is a line number from 1 to the number of lines in the display, p2 is 
+a column number from 1 to the number of columns in the display. If p1 
+and p2 are not both provided then the cursor is 'homed' to row 1, 
+column 1. A value of zero in either p1 or p2 is interpreted as a value 
+of 1.\par
+\par
+\\e[p1A\tab\tab\tab Cursor up\par
+\\e[p1B\tab\tab\tab Cursor down\par
+\\e[p1C\tab\tab\tab Cursor forward\par
+\\e[p1D\tab\tab\tab Cursor backward\par
+\par
+p1 is a number of positions to move the cursor, if this parameter is 
+not provided, these comands will move the cursor by one position.\par
+\par
+\\e[p1;p2; ... pn;m       Set Graphics Rendition\par
+\par
+p1 ... pn are ASCII decimal numbers, they are separated by semicolons 
+before the 'm' which defines the 'Set Graphics Rendition' command. If 
+no parameters are given, a single parameter of 0 is assumed. The 
+parameters supported are:\par
+\par
+          0 : \tab\tab Reset to default 
+attributes                                \par
+          1 : \tab\tab Set bright intensity attribute\par
+          7 : \tab\tab Set reverse video attribute\par
+          22 :\tab\tab Set normal intensity attribute \par
+          27 :\tab\tab Set normal (not reverse) video attribute\par
+          30  - 37 :\tab Set foregound color 0 - 7\par
+          39 :\tab\tab Set default foreground color\par
+          40  - 47:\tab Set background color 0 - 7\par
+          49 :\tab\tab Set default background color\par
+\par
+With these SGR command parameters, it is possible to set all 16 
+foreground colors (0-7, 8-15 are 'bright' versions of 0-7), all 8 
+background colors, and the reverse video attribute, with an ANSI 
+compatible command.\par
+\par
+\\e[20h\tab\tab\tab Enable newline mode\par
+\\e[20l\tab\tab\tab Disable newline mode\par
+\\e[?25h\tab\tab Enable cursor display\par
+\\e[?25l                        Disable cursor display\par
+\\e[?7h\tab\tab             Enable auto line-wrap\par
+\\e[?7l                          Disable auto line-wrap \par
+ \par
+MakerLisp VGA terminal-specific commands:\par
+\par
+\\ec\tab\tab\tab Insert literal character\par
+\par
+'c' is a character to be inserted literally at the cursor position. If 
+'c' is a character\par
+that would otherwise have terminal control functions, in this instance 
+it will not, the character will be inserted into the display buffer, 
+allowing the code page 437 character cell defined for that value to be 
+displayed. The cursor position is unchanged, it does not automatically 
+advance with this command.\par
+\par
+\\e[[\tab\tab\tab Insert literal character '['\par
+\par
+Like the \\ec command above, to insert the character '['\par
+ \par
+\\e[p1;p2;p3;p4R\tab Keyboard and Display ROM read/write\par
+\\e[p1;p2U\par
+\\e[p1;p2;p3;p4;p5;p6V                             \par
+\\e[p1;p2;p3;p4;p5;p6;p7;p8W\par
+\par
+These commands are used by utilities to read and write the contents of 
+the keyboard controller's flash memory, or the display controller's 
+EEPROM.\par
+\par
+\\e[X<f><b>                  Set foreground / background colors\par
+\par
+720x480 display mode:\par
+\par
+<f> and <b> are binary bytes, the low four bits of <f> are the 
+foreground color index, and the low three bits of <b> are the 
+background color index. The background color is limited to the 8 normal 
+intensity, not 'bright' colors, in the 16 color ANSI palette.\par
+\par
+640x480 or 1024x768 display modes:\par
+\par
+<f> and <b> are binary bytes, the low four bits of <f> are the 
+foreground color index, and the low four bits of <b> are the background 
+color index, the background color may be a normal intensity or a bright 
+color in the 16 color ANSI palette.\par
+\par
+In any display mode, if BOTH <f> and <b> are either 0xFF or 0x00, this 
+signifies the default color combination at palette index 0, 0 (loaded 
+at start-up with gold foreground on black background).\par
+\par
+720x480 display mode:\par
+\par
+\\e[Y<f><b><fc><bc> Load color palette\par
+\par
+<f> and <b> are binary bytes, the low four bits of <f> are the 
+foreground color index, and the low three bits of <b> are the 
+background color index, <f> and <b> together indicating one of 128 
+color palette entries. <fc> is a byte which specifies one of 64 color 
+values, the low six bits being a 2:2:2 r,g,b format, and <bc> is the 
+background color value, in the same format.\par
+\par
+640x480 or 1024x768 display modes:\par
+\par
+\\e[Y<fc><bc>\tab\tab Set direct color\par
+\par
+<fc> and <bc> are binary bytes, the low six bits being the color in 
+2:2:2 r,g,b format.\par
+\par
+\\e[Z<r>                        Set reverse video attribute\par
+\par
+<r> is a binary byte, the low bit indicating normal (0) or reverse (1) 
+video\par
+\par
+III. Display Resolution, Character cells, and Colors\par
+\par
+The default display resolution, corresponding to the EEPROM image 
+provided in the SD card filsystem, '/etc/vga720.rom', is 720x480, 
+providing 30, 80 column rows, of 9x16, code page 437 "extended ascii" 
+characters. The ANSI terminal commands described above may be used to 
+set the indicated foreground, background color combinations on any 
+character as it is written at the current cursor position.\par
+\par
+This is the default display controller mode, and firmware loaded 
+onboard, for the VGA display controller as it is shipped from 
+MakerLisp. Two other optional sets of firmware are also provided on the 
+SD card filesystem, and the VGA firmware update utilities can be used 
+to load new firmware and change the display mode - see HOWTO/update.txt 
+for instructions on how to do this.\par
+\par
+The optional modes/firmware images are:\par
+\par
+'/etc/vga640.rom'\par
+\par
+Display resolution of 640x480, providing 30, 80 column rows of 8x16 
+code page 437 characters. Colors are set with the same ANSI commands as 
+in 720x480 mode, but there are some differences, noted above, and when 
+a color combination is set, it applies to the \i whole row\i0  
+corresponding to the current cursor position. This mode has slightly 
+larger characters and runs at a lower refresh rate, and it may be more 
+usable on some monitors that have trouble with the default 720x480 mode.
+\par
+\par
+'/etc/vga1024.rom'\par
+\par
+Colors set as in 640x480 mode, as noted in descriptions of ANSI 
+commands, above. Display resolution of 1024x768, providing 48, 128 
+column rows of 8x16 code page 437 characters. This mode may be useful 
+for larger monitors, when a larger text display is desired.\par
+\par
+}

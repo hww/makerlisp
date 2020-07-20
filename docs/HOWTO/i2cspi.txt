@@ -1,0 +1,53 @@
+The MakerLisp Machine hardware and software have general purpose support for I2C and SPI slave
+devices (master SPI devices are also supported by the hardware, but no software support for
+masters other than the CPU, is available at this time).    
+
+The eZ80 contains an SPI controller, supporting one SPI bus, and an I2C controller, supporting
+one I2C bus. The SPI controller is used for the SD card device on the CPU card, and the bus can
+be shared for access to other SPI slave devices. The eZ80 I2C bus controller is not connected to
+any externally accessible pins, on the CPU card or the I/O expansion card, and is not used in the
+MakerLisp Machine at all.
+
+However, GPIO pins can be used to create an I2C bus on any two GPIO pins that are not being used
+for something else. See ../gpio.txt for a description of the allocation and use of GPIO pins.
+
+So on the MakerLisp Machine, with the current software support, SPI slave devices are accessed via
+a shared SPI bus, using the eZ80's SPI controller, and I2C slave devices are accessed through
+software manipulation ("bit-banging") of GPIO pins. It is also possible to do SPI accesses using
+GPIO and software control, but no example software for this style of access is provided in the
+current distribution. 
+
+Read about the details of the SPI controller's operation in the eZ80 product specification:
+
+https://www.zilog.com/appnotes_download.php?FromPage=DocTree&dn=PS0192&ft=Product%20Specification%20%28Data%20Sheet%29%20%20&f=YUhSMGNEb3ZMM2QzZHk1NmFXeHZaeTVqYjIwdlpHOWpjeTlsZWpnd1lXTmpiR0ZwYlM5d2N6QXhPVEl1Y0dSbQ==
+
+Two programs in /demo demonstrate the operation of I2C and SPI devices:
+
+1) clock7.l, a seven-segment time-of-day clock program, using an SPI device from Embedded Lab:
+
+https://www.tindie.com/products/rajbex/spi-4-digit-seven-segment-led-display
+
+2) looptemp.l, a program that reads temperature sensors, using I2C devices from Closed Cube:
+
+https://www.tindie.com/products/closedcube/tsys01-01degc-24bit-adc-digital-temperature-sensor/?pt=ac_prod_search
+
+https://www.tindie.com/products/closedcube/hdc1080-high-accuracy-humiditytemperature-sensor/?pt=ac_prod_search
+
+and also from MakerLisp, three (soon to be released) 'TemperSure' temperature sensor boards,
+utilizing the TI TMP125 (SPI), TMP101 (I2C), and HDC1080 (I2C) temperature sensor chips.
+
+The SPI support centers on creating an SPI device 'object' that is specialized by the SPI transfer
+'mode' (polarity and phase of data read and write strobes, see the eZ80 SPI controller
+documentation), speed, and the GPIO used to select the SPI device, allowing it to read and write
+data on the SPI bus. See the demonstation programs, and 'spidev.l', in the demo directory, for
+more information. The spidev object, and the clock7 program, rely on the 'spimode' and 'spixchg'
+built-in MakerLisp primitive functions.
+
+I2C support is done through I2C 'bus objects', on specified GPIO pins. One or more I2C devices can
+exist on these buses, as long as all the devices have different addresses. See 'i2cbus.l', and
+the looptemp demonstration program.
+
+These demonstration programs can be used as templates for other experimental set-ups - for SPI
+devices, take care to adjust for the GPIO used for selection (/CS), and for the desired mode and
+speed of transfer. In the case of GPIO, adjust for the GPIO pins used for the bus, and the I2C
+addresses of the devices used.

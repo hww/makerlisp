@@ -1,0 +1,65 @@
+================================================================
+PIC32MM0256GPM064 Processor module for the Explorer 16/32
+================================================================
+
+mikroBUS(tm) connections
+----------------------------------------------------------------
+The Explorer 16/32 demo board has two mikroBUS ports: A and B.
+The below charts show how the processor pins map to the mikroBUS
+ports and what other features are shared on those pins on the
+Explorer 16/32.
+
+Since most of the pins on the mikroBUS A port are not connected,
+most demos using this processor module will need to be run from
+the mikroBUS B port.
+
+ +- mikroBUS A pin
+ |       +- Processor pin
+ |       |       +- Explorer 16/32 net name(s)
+ |       |       |                 +- Other pin usage on board
+ |       |       |                 |
+/===\ /=====\ /===============\ /========================================\
+AN   |  RC0  |  P25_ANA_USBOC  |  
+RST  |  RB5  |  P95_RSTA       |  P87
+CS   |  RB2  |  P14_CSA        |  P48
+SCK  |  RB8  |  P10_SCKA       |  
+MISO |  RA9  |  P11_MISOA      |  
+MOSI |  RB3  |  P12_MOSIA      |  
+PWM  |  RB15 |  P72_PWMA       |  P76
+INT  |  RB1  |  P67_INTA       |  P47
+RX   |  RC7  |  P52_RXA        |  
+TX   |  RC6  |  P51_TXA        |  
+SCL  |  RB13 |  P57_SCL        |  
+SDA  |  RB7  |  P56_SDA        |  
+
+
+ +- mikroBUS B pin
+ |       +- Processor pin
+ |       |       +- Explorer 16/32 net name(s)
+ |       |       |                 +- Other pin usage on board
+ |       |       |                 |
+/===\ /=====\ /===============\ /========================================\
+AN   |  RA12 |  P24_ANB        |  
+RST  |  RC2  |  P19_RSTB       |  
+CS   |  RC11 |  P23_CSB        |  
+SCK  |  RA10 |  P55_SCKB       |  
+MISO |  RA7  |  P54_MISOB      |  
+MOSI |  RA8  |  P53_MOSIB      |  
+PWM  |  RB0  |  P78_PWMB       |  P88
+INT  |  RC9  |  P18_INTB       |  P22
+RX   |  RA6  |  P49_RXB        |  MCP2221A TX (J37)
+TX   |  RC12 |  P50_TXB        |  MCP2221A RX (J38)
+SCL  |  RB13 |  P57_SCL        |  MCP2221A SCL and mikroBUS A SCL
+SDA  |  RB7  |  P56_SDA        |  MCP2221A SDA and mikroBUS A SDA
+
+
+
+References/Links
+----------------------------------------------------------------
+[1] http://www.mikroe.com/mikrobus/
+[2] http://www.microchip.com/explorer1632
+
+
+Legal
+----------------------------------------------------------------
+mikroBUS a trademark of MikroElectronika.

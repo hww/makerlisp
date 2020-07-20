@@ -1,0 +1,220 @@
+How to update MakerLisp system software
+
+(Please read this document completely before updating firmware on any of the CPU, USB keyboard,
+or VGA display boards.)
+
+I. CPU Card:
+
+The MakerLisp CPU card system system software consists of two parts: eZ80 flash rom code, for the 
+core language and primitives, and Lisp functions and macros, contained in the SD card filesystem,
+which implement higher level forms and functions.
+
+1. To update (or create for the first time), the filesystem on the SD card, simply copy the
+contents of src/uSDImage/lisp in MakerLisp system software archive, to a FAT32 filesystem micro-SD
+(SDHC) card. The card MUST be of "SDHC" type. "SDXC" or "SD" (non-"HC") type cards, WILL NOT WORK
+at this time. The layout of the default SD filesystem is currently:
+
+bin                            System utility programs
+demo                           Demonstration programs
+etc                            System special files
+l                              Lisp language support forms and utilities
+
+After copying the filesystem image from src/uSDImage/lisp, you can check the layout by inserting
+the SD card into the MakerLisp Machine and typing "(ls)".
+
+a. We recommend SanDisk "Ultra Plus" SDHC cards. Many other brands and varieties also work (e.g.,
+PNY) but this is the inexpensive option with which we have the most test time. Samsung SDHC cards
+DO NOT WORK with this product, we haven't determined the exact cause yet.
+
+2. The eZ80 flash image can be updated from MakerLisp, by running a flash rom update utility in
+the "/bin" directory, of the SD filesystem, "romupd.l". Two other utilities are provided,
+"romcmp.l", and "romimg.l", to assist in this process.
+
+To determine the current flash rom code in use, in a running MakerLisp system, type "(commitid)".
+The 7/7/2019, 1.3 distribution of MakerLisp returns this symbol:
+
+$Id: cc4e6d01d7$
+
+A different symbol may be returned on your system. You can look in the release notes of the current
+software distribution, get the expected commit identifier, read about what has changed since your
+flash software commit and the latest distribution, and decide if you want to upgrade. If you
+decide to upgrade, before you do, you may want to make a copy of the current rom image.
+
+To get the contents of the current flash rom, you can type: 
+
+(romimg '/etc/rom.old)
+
+or use any other filename in place of "/etc/rom.old", although you probably want to avoid
+"/etc/rom" - "/etc/rom" in the MakerLisp filesystem from any software release, contains the rom
+that is current and tested with the given software release. If you have updated your SD
+filesystem, this is the new rom image you will want to load into the eZ80 flash. If you are
+running on an older filesystem, "/etc/rom" corresponds to whatever flash rom image was current at
+the time of the software distribution from which you copied the filesystem image. 
+
+romimg.l prints out "." as it reads every 1024 bytes of rom image, 256 times over the entire image,
+and then prints out the total number of bytes read (this will take about three minutes). The
+number printed should be "262144". If any other number is printed, something went wrong. If you
+see "262144", you can be sure that the entire rom image was written to the file specified.
+Now, after you update the flash rom, if you want to revert to the previous rom image, you have
+that image to reload again.
+
+Now, to update the eZ80's flash rom, type:
+
+(romupd '/etc/rom)
+
+(or use the name any other file containing the desired flash rom contents)
+
+romupd.l will respond with this warning message:
+
+Warning ! This will erase the flash rom COMPLETELY !
+A new image will then be loaded to the flash rom.
+Press any key to continue, or ^C to abort ... 
+
+And another warning: once you start updating the rom, if you quit the program, or if it fails and
+terminates early, you have a partially updated flash rom image in the eZ80. This is not an
+immediately fatal circumstance, as whenever the MakerLisp Machine is running Lisp programs, it is
+operating from ram - at system startup, the rom image is copied to ram, and then run from there.
+But an integral flash rom image needs to be in place in the eZ80 before the next power-down or
+CPU reset - otherwise on start-up, a corrupted image is copied to RAM, and the system will likely
+hang.
+
+So if you aborted the flash update, or decide that you want to update from a different rom image,
+you can run romupd.l again, and as long as it completes, you will have a running system the next
+time you power-up or reset. If you do wind up hanging the system in this manner, you can return the
+CPU board, and we will reprogram it and send it back to you. If you have the I/O expansion board,
+you can purchase a programming cable from Zilog, and you can reprogram it yourself - we'll
+help you with that process.
+
+As with 'romimg.l', 'romupd.l' takes about three minutes, prints "." progress indicators, and
+displays the total number of bytes programmed at program termination - this should be "262144".
+
+3. To check that your flash rom update succeeded, you can also run 'romcmp.l':
+
+(romcmp '/etc/rom)
+
+This compares the contents of the file specified with eZ80 flash rom image. As with the other
+utilities, "262144" indicates success, and any other number represents the position at which a
+failure (mismatch) occurred.
+
+II. USB keyboard and VGA display controller cards
+
+As of MakerLisp release 1.3, it is now possible to update the firmware on the USB keyboard and
+VGA display controllers, in a full MakerLisp Machine system (CPU, I/O expansion, keyboard and
+display, wired as in HOWTO/wire.txt), without any additional debugger tools or cables. These new
+utilities are provided:
+
+kbimg.l, kbupd.l, kbcmp.l
+vgaimg.l, vgaupd.l, vgacmp.l
+
+mirroring the functionality of romimg.l, romupd.l, and romcmp.l, described above. If you do NOT
+have a USB keyboard or VGA display controller received from MakerLisp 7/2019 or later, then you
+WILL need to update your firmware manually, described in the section "Manual Updates", below,
+before this "in-system" update capability is available to you.
+
+Similar to the "commitid" function, described above, there is now a "termid" function. When you
+type "(termid)" on the 7/7/2019 1.3 (flash ROM i.d. cc4e6d01d7) release, with the default firmware
+images in the keyboard and display controllers, this result symbol is displayed:
+
+MakerLisp Keyboard $Id: cc4e6d01d7$ Display 720x480 $Id: cc4e6d01d7$
+
+This terminal identification string is the response of the ANSI terminal emulation, on the two
+controllers, to the ENQ (0x05) character. It shows both the keyboard and display controller
+firmware software revision identifiers ("$Id: xxxxxxxxxx$"), and the resolution of the display
+controller firmware loaded. You can use the identifiers to look in the release notes to see, to
+which software release, the firmware in your keyboard or display controller corresponds. If you
+have received a response like this, the update utilities described below, should work for you. If
+you do not get a response like this to "(termid)", it may be:
+
+'? Unbound variable: "termid"'
+
+This means that your SD card filesystem does not have the termid.l utility. You will need to update
+the SD card image.
+
+- or -
+
+'MakerLisp' (followed by various other strings, meant to identify a "model" of ANSI terminal)
+
+This means your VGA display and USB keyboard controller firmware is older, does not support in-
+system update, and you will need to update it, manually. Skip to the "Manual Updates" section,
+below.
+
+To update the VGA display controller software to the latest revision supplied on your SD card
+image, or to change the display resolution, type:
+
+"(vgaupd '/etc/vga720.rom)" or
+"(vgaupd '/etc/vga640.rom)" or
+"(vgaupd '/etc/vga1024.rom)"
+
+to choose 720x480 (default), 640x480, or 1024x768 display resolution (see manuals/mlmterm.rtf for
+a description of these display modes), programmed into the VGA display's EEPROM memory.
+
+A warning message will be displayed:
+
+Warning ! Updating display controller eeprom !
+Press any key to continue, or ^C to abort ...
+
+Press any key to continue, or ^C to abandon the process altogether.
+
+The vgaupd.l utility will take about 5 minutes to complete. Like the romupd.l utilty for the
+eZ80 flash ROM described earlier, once started, you need to successfully complete this process
+before the next power-down or reset of the display controller. But until that point, the VGA
+display is running from its RAM memory, and so an interruption is not fatal, as long as it does
+complete before the next power cycle or reset.
+
+The VGA controller EEPROM image is 32768 bytes long. When the vgaimg.l or vgacmp.l utilties are
+run, successful competuon is accompanied bt a result of "32768". vgaupd.l writes the EEPROM 4 bytes
+at a time, successful completion returns a result of "8192".
+
+To see the effect of the new VGA firmware, power-cycle or simply hit the reset button on the VGA
+controller.
+
+To update the USB keyboard controller, type:
+
+"(kbupd '/etc/usbkb.rom)"
+
+This warning will be displayed:
+
+Warning ! Updating keyboard controller flash rom !
+Press any key to continue, or ^C to abort ...
+
+Press any key to continue, or ^C to abort the update.
+
+This utility will also take about 5 minutes to run. While it is running, because it is updating
+the keybosrd controller, the keyboard is disabled. When the kbupd.l utility finishes, the keyboard
+will still be disabled - power-cycle or hit the reset button on the keyboard controller to resume
+normal keyboard operation with the updated firmware.
+
+The keyboard controller firmware is 55296 bytes. kbimg.l and kcbcmp.l return a result of "55296"
+on  sucessful completion. kbupd.l writes the controller's flash memory 8 bytes at a time, so it
+will return the number "6912" on successful completion.
+
+If the VGA or keyboard update processes do not succeed before the next power or reset event, you
+may wind up with non-working firmware on board your controller(s). In this case, you will need to
+update the firmware more manually, using additional toools and cables.
+
+III. Manual Updates (keyboard and display controller)
+
+There are three options for manual updating of keyboard and display controller firmware, all
+available at no cost to you, from MakerLisp.
+
+1) Return the board to Makerlisp, for re-programming
+
+You can ship the board freight collect to MakerLisp, we will reprogram it, and ship it back.
+
+2) We will ship you a new board with the latest firmware, and you can ship your old one back to us
+
+Depending on shipping costs, and boards in stock, MakerLisp will usually recommend 1) or 2).
+
+3) MakerLisp will loan you the necessary debuggers and cables to reprogram the boards yourself
+
+This would be a better option for customers who do not want the machine to be unavailable
+for too long, or for customers who want to reprogram the controllers from source, because of an
+interest in working with the controller firmware itself, to modify it or extend it. If you want
+to keep the debugger tools, we can convert the loan to a sale (these tools are fairly inexpensive),
+or we can give you the references to purchase these tools yourself, from start, if that's what
+you want.
+
+The important thing is, if you have purchased keyboard or display controllers from MakerLisp
+before 7/2019, and want to upgrade your boards, to get the in-system update capability, which we
+recommend, we want to help you do this as easily as possible for you. Please contact us at
+info@makerlisp.com or support@makerlisp.com.

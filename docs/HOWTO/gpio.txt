@@ -1,0 +1,84 @@
+Configuration and use of GPIO on CPU card / IO Expansion Board
+
+There are 32 GPIO/IO pins on the eZ80F91, ports A, B, C, and D. In the CPU card/expansion board
+configuration, these signals are connected to the mating high-density Hirose connectors on
+the two boards. Other signals also are on these connectors, but this document is just concerned
+with the 32 GPIO/IO pins, how they are connected on the CPU and IO boards.
+
+All GPIO pins also have a programmable alternate connection to peripherals inside the eZ80. Some
+pins will be used for these alternate functions on the CPU card, and this affects how they are
+connected on the CPU card and the Hirose connectors.
+
+Port pin      eZ80 alternate function           CPU card function       Hirose connection
+
+PA7           /PWM3                                                     Yes
+PA6           PWM2_EC1                                                  Yes
+PA5           /PWM1_TOUT1                                               Yes
+PA4           /PWM0_TOUT0                                               Yes
+PA3           PWM3_OC3                                                  Yes
+PA2           PWM2_OC2                                                  Yes
+PA1           PWM1_OC1                                                  Yes
+PA0           PWM0_OC0                                                  Yes
+
+PB7           MOSI                              SPI bus                 Yes, +3.3V 10k pull-up
+PB6           MISO                              SPI bus                 Yes, +3.3V 10k pull-up
+PB5           ICB3                              sys rst, uSD pwr        Yes, +3.3V 10k pull-up (1)
+PB4           ICA2                              uSD /CS                 Yes, +3.3V 10k pull-up
+PB3           SCK                               SPI bus                 Yes, +3.3V 10k pull-up
+PB2           /SS                               SPI ctl slave mode      Yes, +3.3V 10k pull-up
+PB1           IC1                               Data terminal ready     Yes (3)
+PB0           IC0_EC0                                                   Yes
+
+PC7           RI1                                                       Yes
+PC6           DCD1                                                      Yes
+PC5           DSR1                                                      Yes
+PC4           DTR1                                                      Yes
+PC3           CTS1                                                      Yes
+PC2           RTS1                                                      Yes
+PC1           RXD1                                                      Yes
+PC0           TXD1                                                      Yes
+
+PD7           RI0                                                       Yes
+PD6           DCD0                                                      Yes
+PD5           DSR0                                                      Yes
+PD4           DTR0                                                      Yes
+PD3           CTS0                                                      Yes
+PD2           RTS0                                                      Yes
+PD1           RXD0                              console receive         Yes (2)
+PD0           TXD0                              console transmit        Yes (2)
+
+1. This pin will be programmed as a GPIO output, and used to reset and restart peripherals and
+controllers external to the eZ80. Low (0V, GND) will mean reset or inactive. High (TTL logic 1)
+will release external devices from their reset condition, and allow them to be active. On the
+CPU card, the micro-SD card circuitry is a client of this system reset, card power will be
+gated off with system reset low, and restored with system reset high. Other devices on the
+expansion board may also take this signal as an input.
+
+On power up, this pin is a GPIO input. It is weakly pulled low on the CPU card, so that if no
+expansion board is present this input will read 0. If an expansion board is plugged in, this pin is
+pulled high through a stronger pull-up, and will read 1. So at start-up time, the eZ80 software can
+determine the presence of an expansion board, for future reference. Then it will switch the pin to
+be a GPIO output, drive it low for a time, and then high, effecting a system reset, and on the CPU
+card, cycling power/powering on the SD card.
+
+2. PD1 (RXD0) and PD0 (TXD0) are also optionally connected to TX and RX coming from the USB/UART
+chip. When the CPU card is not plugged into the expansion board, the USB/UART is connected. When
+the CPU card is plugged into the expansion board, under control of jumpers on the expansion board,
+the USB/UART RX and TX may be isolated from PD1 and PD0. PD1 (RXD0) is EITHER connected to the
+USB/UART, or connected to the pin on the Hirose connector, but not both. PD0 (TXD0) may be
+connected to BOTH USB/UART and the pin on the Hirose connector, or only to the Hirose connector.
+UART0 output can go both places, but its input is either/or.
+
+3. The VGA terminal display holds this signal low until it is ready to start receiving characters
+from the eZ80, at which time it raises this signal. The eZ80 software waits for this DTR signal
+to be high, on start-up, before continuing - but it is not checked by the eZ80 software after
+that. This pin is not used for flow control, only to check that the VGA display is ready to begin.
+Software flow control (X-on/X-off) is used by the VGA display and the eZ80 software to keep the
+eZ80 from overrunning the VGA display.
+
+The eZ80 software will not check for VGA ready if the CPU card is not plugged into an expansion
+board. If the CPU card is plugged into an expansion board but no VGA controller or other source
+of a DTR signal is available, pin PB2 (/SS), which is pulled up, can be jumpered to PB1, to hold
+this signal high, and to allow the eZ80 software to start-up without waiting. If no high signal
+is present on PB1, the eZ80 software will time out, and continue start-up normally, after about
+2 seconds.

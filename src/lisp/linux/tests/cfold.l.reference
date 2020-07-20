@@ -1,0 +1,161 @@
+MakerLisp Version 1.3
+; Test folding of constant integer arithmetic expressions
+
+; First, just one at a time
+
+; 1 + 1 = 2
+(define cf_add (lambda () (+ 1 1)))
+(#Address () (LOADC #Address (+ 1 1)))
+(cf_add)
+2
+cf_add
+(#Address () (QUOTE 2))
+
+; -2 >> 1 = -1
+(define cf_asr (lambda () (>> -2 1)))
+(#Address () (LOADC #Address (>> -2 1)))
+(cf_asr)
+-1
+cf_asr
+(#Address () (QUOTE -1))
+
+; -2 / 2 = -1
+(define cf_div (lambda () (/ -2 2)))
+(#Address () (LOADC #Address (/ -2 2)))
+(cf_div)
+-1
+cf_div
+(#Address () (QUOTE -1))
+
+; 1 / 0 = ?
+(define cf_div (lambda () (/ 1 0)))
+(#Address () (LOADC #Address (/ 1 0)))
+(cf_div)
+? Divide by zero
+cf_div
+(#Address () (QUOTE 0 QUOTE 1 DIV))
+
+; -1 & -2 = -2
+(define cf_iand (lambda () (& -1 -2)))
+(#Address () (LOADC #Address (& -1 -2)))
+(cf_iand)
+-2
+cf_iand
+(#Address () (QUOTE -2))
+
+; 99 % 10 = 9
+(define cf_imod (lambda () (% 99 10)))
+(#Address () (LOADC #Address (% 99 10)))
+(cf_imod)
+9
+cf_imod
+(#Address () (QUOTE 9))
+
+; 99 % 0 = ?
+(define cf_imod (lambda () (% 99 0)))
+(#Address () (LOADC #Address (% 99 0)))
+(cf_imod)
+? Divide by zero
+cf_imod
+(#Address () (QUOTE 0 QUOTE 99 IMOD))
+
+; ~ 0 = -1 
+(define cf_inot (lambda () (~ 0)))
+(#Address () (LOADC #Address (~ 0)))
+(cf_inot)
+-1
+cf_inot
+(#Address () (QUOTE -1))
+
+; 1 | 2 = 3 
+(define cf_ior (lambda () ("|" 1 2)))
+(#Address () (LOADC #Address (| 1 2)))
+(cf_ior)
+3
+cf_ior
+(#Address () (QUOTE 3))
+
+; -1 ^ -2 = 1 
+(define cf_ixor (lambda () (^ -1 -2)))
+(#Address () (LOADC #Address (^ -1 -2)))
+(cf_ixor)
+1
+cf_ixor
+(#Address () (QUOTE 1))
+
+; 3 * 4 = 12 
+(define cf_mul (lambda () (* 3 4)))
+(#Address () (LOADC #Address (* 3 4)))
+(cf_mul)
+12
+cf_mul
+(#Address () (QUOTE 12))
+
+; -1 << 1 = -2 
+(define cf_shl (lambda () (<< -1 1)))
+(#Address () (LOADC #Address (<< -1 1)))
+(cf_shl)
+-2
+cf_shl
+(#Address () (QUOTE -2))
+
+; 1 - -1 = 2 
+(define cf_sub (lambda () (- 1 -1)))
+(#Address () (LOADC #Address (- 1 -1)))
+(cf_sub)
+2
+cf_sub
+(#Address () (QUOTE 2))
+
+; Then, in combination
+
+; -2
+(define cf_shl (lambda () (<< (~ 0) 1)))
+(#Address () (LOADC #Address (<< (~ 0) 1)))
+(cf_shl)
+-2
+cf_shl
+(#Address () (QUOTE -2))
+
+; -1
+(define cf_asr (lambda () (>> (<< (~ 0) 1) 1)))
+(#Address () (LOADC #Address (>> (<< (~ 0) 1) 1)))
+(cf_asr)
+-1
+cf_asr
+(#Address () (QUOTE -1))
+
+; -2
+(define cf_sub (lambda () (- (>> (<< (~ 0) 1) 1) 1)))
+(#Address () (LOADC #Address (- (>> (<< (~ 0) 1) 1) 1)))
+(cf_sub)
+-2
+cf_sub
+(#Address () (QUOTE -2))
+
+; 0x7fffff
+(define test (lambda () (& (>> (<< (~ 0) 1) 1) (- (<< 1 23) 1))))
+(#Address () (LOADC #Address (& (>> (<< (~ 0) 1) 1) (- (<< 1 23) 1))))
+(sprintf '"%#x" (test))
+0x7fffff
+test
+(#Address () (QUOTE 8388607 QUOTE -1 IAND))
+
+; 0x7fffff
+(define test (lambda () (& (>> (<< (~ 0) 1) 1) (_sub (<< 1 23) 1))))
+(#Address () (LOADC #Address (& (>> (<< (~ 0) 1) 1) (_sub (<< 1 23) 1))))
+(sprintf '"%#x" (test))
+0x7fffff
+test
+(#Address () (QUOTE 8388607))
+
+; 0x7fffff
+(define cf_iand (macro () (& (>> (<< (~ 0) 1) 1) (- (<< 1 23) 1))))
+(() () (LOADC #Address (& (>> (<< (~ 0) 1) 1) (- (<< 1 23) 1))))
+(define test (lambda () (cf_iand)))
+(#Address () (LOADC #Address (cf_iand)))
+(sprintf '"%#x" (test))
+0x7fffff
+test
+(#Address () (QUOTE 8388607))
+Bytes: 35264/37552, Symbols: 103, Hits: 837/1290, Collections: 233

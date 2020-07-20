@@ -1,0 +1,43 @@
+How to set up the PuTTY terminal emulator for use with the MakerLisp Machine
+
+1. Before starting PuTTY, connect the MakerLisp Machine CPU card via the USB micro connector,
+to a USB port on your computer, and find the serial device (e.g. something like "COM19" on
+Windows, or "/dev/ttyACM0", on Linux or Mac) that refers to the MakerLisp Machine CPU card's
+USB/UART device.
+
+2. Start PuTTY. The session configuration page will be displayed.
+
+3. Enter a session name (e.g. "MakerLisp") in "Saved Sessions".
+
+4. Change "Connection type" to "Serial".
+
+5. Change "Serial line" to your serial device name, determined in step 1.
+
+6. Change "Speed" to "115200"
+
+7. In the "Category" pane to the left of the configuration page, choose "Terminal".
+
+8. Set "Implicit CR in every LF".
+
+9. Choose the "Keyboard" category under "Terminal"
+
+10. Change the backspace key to send "Control-H".
+
+11. Change the function key sequences to "SCO".
+
+12. Choose the "Translation" category under "Window".
+
+13. Change the remote character set to "CP437" from the pull-down menu.
+
+14. If you want to change the cursor style, choose "Appearance" under "Window", and set or
+reset options under "Cursor appearance". For example "Underline", and "Cursor blinks".
+
+15. If you want to change the cursor color, choose "Colours" under "window", and and change "Cursor
+Colour", for example, "187" for RGB Red, Green, and Blue values, yielding a normal intensity white
+cursor color.
+
+16. After you have finished setting these options, return to the "Session" category and push the
+"Save" button. Load this session the next time you start PuTTY.
+
+17. Open the PuTTY session and start typing, or reset the CPU card to start from scratch with
+the terminal emulator connected.

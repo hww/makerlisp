@@ -1,0 +1,194 @@
+MakerLisp Version 1.3
+#!lisp.sh
+(verbose 99)
+0
+
+; Bubble sort of integers
+(define bubble
+  (lambda (unsorted)
+
+    ; Check for list of integers
+    (define listint
+      (lambda (x)
+        (if (null x)
+          't
+          (and (pairp x) (integerp (car x)) (listint (cdr x))))))
+
+    (define bubble1
+      (lambda (k)
+        
+        (if (not (listint unsorted))
+          (k '"bubble expects list of integers"))
+
+        ; Now bubble sort
+        (let ((change 't) (result unsorted))
+
+          ; Return a list, bubbled once on each adjacent pair
+          (define sort1
+            (lambda (x)
+              (if (or (null x) (null (cdr x)))
+                x
+                (if (> (car x) (car (cdr x)))
+                  (progn
+                    (setq change 't)
+                    (cons (car (cdr x)) (sort1 (cons (car x) (cdr (cdr x))))))
+                  (cons (car x) (sort1 (cdr x)))))))
+
+          ; Bubble until no change
+          (while change
+            (setq change '())
+            (setq result (sort1 result)))
+
+          result)))
+
+    (call/cc bubble1)))
+(#Address (unsorted) (LOADC #Address (progn (define listint (lambda (x) (if (null x) (quote t) (and (pairp x) (integerp (car x)) (listint (cdr x)))))) (define bubble1 (lambda (k) (if (not (listint unsorted)) (k (quote "bubble expects list of integers"))) (let ((change (quote t)) (result unsorted)) (define sort1 (lambda (x) (if (or (null x) (null (cdr x))) x (if (> (car x) (car (cdr x))) (progn (setq change (quote t)) (cons (car (cdr x)) (sort1 (cons (car x) (cdr (cdr x)))))) (cons (car x) (sort1 (cdr x))))))) (while change (setq change (quote ())) (setq result (sort1 result))) result))) (call/cc bubble1))))
+
+; Now test it
+(bubble 0)
+; Null (empty) list predicate - same as 'not'
+(define null
+  (macro (x)
+    (forget 'null)
+   `(not ,x)))
+; Logical, short-circuiting and of n arguments
+(define and
+  (macro args
+    (forget 'and)
+    `(n-ary and _land 't ,@args)))
+; Extend a 2 argument function to an arbitrary number of arguments
+(define n-ary
+
+  ; args: macro name, primitive function, base value, argument list
+  (macro (mnam pfun bval . args)
+
+    (forget 'n-ary)
+
+    (define first (car args))
+    (define second (cadr args))
+    (define more (cddr args))
+
+    (if (not first)
+      bval
+      (if (not second)
+        `(,pfun ,bval ,first)
+        (if (not more)
+          `(,pfun ,first ,second)
+          `(,mnam (,pfun ,first ,second) ,@more))))))
+(define cadr
+  (macro (x)
+    (forget 'cadr)
+   `(car (cdr ,x))))
+; Two argument logical and
+(define _land
+  (macro (x y)
+    (forget '_land)
+   `(if ,x ,y)))
+bubble expects list of integers
+(bubble '())
+; 'let' using lambda, bind all at once
+(define let
+  (macro (bind . body)
+
+    (forget 'let)
+
+    (define vars
+      (lambda (b)
+        (if (not b)
+          '()
+          (cons (caar b) (vars (cdr b))))))
+
+    (define vals
+      (lambda (b)
+        (if (not b)
+          '()
+          (cons (cadar b) (vals (cdr b))))))
+
+    `((lambda ,(vars bind) ,@body) ,@(vals bind))))
+(define cadar
+  (macro (x)
+    (forget 'cadar)
+   `(car (cdar ,x))))
+(define cdar
+  (macro (x)
+    (forget 'cdar)
+   `(cdr (car ,x))))
+(define caar
+  (macro (x)
+    (forget 'caar)
+   `(car (car ,x))))
+; 'while' implementation
+(define while
+  (macro (condition . body)
+
+    (forget 'while)
+
+    (define inner (gensym))
+    (define kbreak (gensym))
+    (define kcontinue (gensym))
+
+   `(call/cc
+      (lambda (,kbreak)
+          
+        (define break (macro () `(,kbreak '())))
+        (define continue (macro () `(,kcontinue ,kcontinue)))
+
+        (define ,inner
+          (lambda (,kcontinue)
+            (if ,condition (progn ,@body (,inner ,kcontinue)))))
+           
+        (,inner (call/cc (lambda (k) k)))))))
+; Logical, short-circuiting or of n arguments
+(define or
+  (macro args
+    (forget 'or)
+   `(n-ary or _lor '() ,@args)))
+; Two argument logical or
+(define _lor
+  (macro (x y)
+    (forget '_lor)
+    (define temp (gensym))
+     `(let ((,temp ,x))
+        (if ,temp ,temp ,y))))
+()
+(bubble '(9 8 7 6 5 4 3 2 1 a))
+bubble expects list of integers
+(bubble '(0xa 9 8 7 6 5 4 3 2 1))
+; Descending order of n arguments
+(define greater
+  (macro args
+    (forget 'greater)
+   `(order-nary greater _greater ,@args)))
+; Extend a 2 argument numeric ordering to an arbitrary number of arguments
+(define order-nary
+
+  ; args: macro name, primitive function, argument list
+  (macro (mnam pfun . args)
+
+    (forget 'order-nary)
+
+    (define first (car args))
+    (define second (cadr args))
+    (define more (cddr args))
+
+    (if (not first)
+     `'t
+      (if (not second)
+
+       `(progn
+          (if (not (numberp ,first))
+            (error
+              (cats '"? Arguments to '" ',mnam '"' must be numbers"))
+          't))
+        
+        (if (not more)
+         `(,pfun ,first ,second)
+         `(if (,pfun ,first ,second)
+            (,mnam ,second ,@more)))))))
+; Two argument greater than
+(define _greater
+  (macro (x y)
+    (forget '_greater)
+   `(_less ,y ,x)))
+(1 2 3 4 5 6 7 8 9 10)
+Bytes: 54400/58872, Symbols: 126, Hits: 1187/1572, Collections: 156

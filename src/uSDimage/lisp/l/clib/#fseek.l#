@@ -1,0 +1,4 @@
+(define fseek
+  (macro (fp offset whence)
+    (forget 'fseek)
+   `(ffcall 'fseek '(int (void* double int)) (list fp ))))

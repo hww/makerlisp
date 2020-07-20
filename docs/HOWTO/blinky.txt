@@ -1,0 +1,17 @@
+Setting up a "blinky" circuit
+
+The "blinky.l" demonstration program in "/demo" uses Port A bit/pin 7 (PA7) as an output to drive
+an LED. To set up the circuit expected by blinky.l:
+
+1) Using a female to male jumper wire, connect the GPIO PA7 header on the I/O expansion board to
+a breadboard vertical row, into which you have placed the positive (long) lead of an LED.
+
+2) Place a 330 ohm resistor in the breadboard, one lead in the  vertical row that is connected to
+the negative (short) lead of the LED, and the other end in a horizontal bus row, connected to
+ground. You may have to rearrange the wiring of ground to one of the controller boards, in order
+to use a horizontal bus row on the breadboard as a common ground for both the controller board and
+the LED circuit.
+
+3) When the blinky.l program runs, as it raises PA7 high, 3.3 V out of PA7 will drive 10 mA through
+the LED and 330 ohm resistor in series to ground, lighting the LED. When PA7 is dropped by
+blinky.l to 0 V, currrent flow through the LED will cease, and the LED will turn off.

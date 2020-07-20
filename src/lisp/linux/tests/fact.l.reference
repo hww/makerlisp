@@ -1,0 +1,28 @@
+MakerLisp Version 1.3
+#!lisp.sh
+
+; Recursive looping factorial test
+
+; Factorial
+(define fact
+  (lambda (x)
+    (if (zerop x) 1 (* x (fact (- x 1))))))
+(#Address (x) (LOADC #Address (if (zerop x) 1 (* x (fact (- x 1))))))
+
+; Loop a million times
+(define loopfact
+  (lambda (i)
+    (if (< i 1000000)
+      (progn
+        (fact 42)
+        (loopfact (+ i 1)))
+      i)))
+(#Address (i) (LOADC #Address (if (< i 1000000) (progn (fact 42) (loopfact (+ i 1))) i)))
+
+(loopfact 0)
+1000000
+
+; Look at the code
+fact
+(#Address (x) (GET00 ZEROP SELECT (QUOTE 1) (EVALC (QUOTE 1 GET00 SUB GETB #Address APPLY) GET00 MUL)))
+Bytes: 32992/36872, Symbols: 94, Hits: 709/1012, Collections: 25779

@@ -1,0 +1,330 @@
+{\rtf1\ansi
+\deff1\uc1
+{\fonttbl
+{\f0\fmodern\fcharset0\fprq1Courier 10 Pitch;}
+{\f1\fswiss\fcharset0Helvetica;}
+}
+{\*\generator Ted 2.23, Feb 4, 2013 (http://www.nllgg.nl/Ted);}
+{\info
+{\creatim\yr2019\mo4\dy4\hr18\min22\sec57}
+{\revtim\yr2019\mo4\dy22\hr0\min49\sec47}
+}
+\fet0\aftntj\aftnnrlc
+\sectd
+\saftnnar\f1\fs24MakerLisp Machine Software Reference\par
+\par
+This document is not complete. For now it serves to highlight some 
+important differences between MakerLisp and other Lisp dialects, and 
+gives a list of supported forms.\par
+\par
+1. The reader\par
+\par
+The reader returns a value as soon as a complete expression is 
+acquired. This means, in the read-evaluate-print loop,  a delimiting or 
+ending character typed by the user will cause the expression to be 
+returned to the reader, evaluated, and printed, immediately, without 
+the necessity of ending the line explicitly, by entering a carriage 
+return. This may be surprising, at first. Type "()" to see a simple 
+example. But it also means that you can end complex expressions by 
+typing right parentheses until the expression is accepted - when it is 
+accepted, the reader will print a newline and then pass the expression 
+to the evaluator.\par
+\par
+There are no strings in MakerLisp, there are only symbols. As in 
+Scheme, symbols have no properties, only a name. In MakerLisp there are 
+no rules about what character strings can be the name of a symbol, but 
+the reader uses conventional cues about what is likely a number, what 
+is a list, and what is a vector, assuming that anything else is a 
+symbol. These cues can be overridden with ' \\ ' (escape, or take 
+literally, as a part of a symbol name, the next character), and ' " ' 
+(assume all characters enclosed by the double quotes are to be taken 
+literally as part of a symbol name).\par
+\par
+Where one would use a string, which is a constant, in other Lisps, in 
+MakerLisp, a quoted symbol name is used. For example, instead of "This 
+is a string" typed in the REPL , returning the string as the value, 
+type '"This is a symbol", to get that symbol as the value.\par
+\par
+To return a symbol with the name "123", type "123". Or "1 unusual 
+symbol". Symbols can have any name, but the reader will make the 
+ordinary guesses it would make in any Lisp, unless you help it out when 
+there are unusual characters (characters that make a symbol name look 
+like a number, list, or a vector).\par
+\par
+2. The path, and auto-loading\par
+\par
+When the environment is searched for a binding for a variable, if none 
+is found, the evaluator checks to see if, somewhere on the path, there 
+is a file named "< symbol name>.l" . If no such file is found, the 
+symbol is unbound and an error is thrown. If a file is found, a stub 
+macro is put in place as the value of the variable. This stub assumes 
+that the symbol is being used as a function or macro name in the first 
+position of an application, and causes that specific file to be loaded, 
+every expression in the file to be evaluated, and then the original 
+application is re-evaluated, this time with the benefit of the 
+re-binding of the symbol according to the loaded file. If the file did 
+in fact define the value of the symbol to be a well-formed function or 
+macro, then execution proceeds as if the symbol had been defined that 
+way before it was used in an application. So it is not neccessary to 
+include or load function or macro definitions before those functions or 
+macros are used, if a properly named file with the function or macro 
+definition is on the path. For example, "demo/hello.l" is in the 
+default filesystem image, and the default path is "/demo:/bin". So 
+typing "(hello)" executes the function defined in "demo/hello.l".\par
+\par
+The path exists in two parts: there is a path variable "*PATH*", and as 
+shown above, it contains directory specifications, separated by colons. 
+These directories are searched first. You can set the *PATH* variable 
+to anything you like.\par
+\par
+The other part of the path is searched next, and it is not specified by 
+any Lisp variable, it is hard-wired in the MakerLisp system. This 
+built-in set of searched directories are the subdirectories of the "/l" 
+directory. They contain essential language definitions and utility 
+functions.\par
+\par
+When the system starts up, it starts by loading "/l/util/makerlisp.l". 
+The last expression in this includes the "/l/user.l" file. user.l 
+defines the *PATH* variable, and prints a start-up message. If you want 
+to change your path, or add to your start-up, this is a good place to 
+do that.\par
+\par
+3. List of supported forms\par
+\par
+In the following list, for each function, the diectory in which the 
+defining lisp file is given, or if the form is defined by the 
+implementation, "core" is displayed. In the notes column, a brief 
+comment is given if the form is unlike anything in Scheme or Common 
+Lisp.\par
+\par
+\f0\fs20Form\tab\tab Defined In\tab\tab Notes\par
+\par
+call/cc\tab core\par
+define     \tab core\par
+if         \tab core\par
+lambda     \tab core\par
+macro      \tab core\par
+progn      \tab core\par
+quote      \tab core\par
+setq       \tab core\par
+\par
+_add\tab\tab core\tab\tab\tab dyadic add\par
+_cats\tab\tab core\tab\tab\tab dyadic symbol concatenation\par
+_div\tab\tab core\tab\tab\tab dyadic divide\par
+_equal\tab core\tab\tab\tab dyadic equal\par
+_iand\tab\tab core\tab\tab\tab dyadic integer (bitwise) and\par
+_ior\tab\tab core\tab\tab\tab dyadic integer (bitwise) or\par
+_ixor\tab\tab core\tab\tab\tab dyadic integer (bitwise) exclusive or\par
+_less\tab\tab core\tab\tab\tab dyadic less-than\par
+_mul\tab\tab core\tab\tab\tab dyadic multiply\par
+_sub\tab\tab core\tab\tab\tab dyadic subtract\par
+%\tab\tab core\tab\tab\tab integer modulus\par
+assignedp\tab core\par
+boundp\tab core\par
+car\tab\tab core\par
+cd\tab\tab core\tab\tab\tab change directory\par
+cdr\tab\tab core\par
+commitid\tab core\tab\tab\tab flash rom signature\par
+cons\tab\tab core\par
+debugger\tab core\tab\tab\tab low-level debugger\par
+defer\tab\tab core\tab\tab\tab defer (^C) breaks\par
+eof\tab\tab core\tab\tab\tab skip to end of file in input stream\par
+eq\tab\tab core\par
+orerror\tab\tab core\tab\tab\tab throw an error\par
+eval\par
+forget\tab core\tab\tab\tab forget (unbind) top-level variable\par
+gensym\tab core\par
+ffcall\tab core\tab\tab\tab foreign function call\par
+inclevel\tab core\tab\tab\tab current input stream include level\par
+include\tab core\tab\tab\tab include a file in input stream\par
+int2real\tab core\tab\tab\tab convert integer to real\par
+int2sym\tab core\tab\tab\tab convert integer to 1 character symbol\par
+integerp\tab core\par
+keyp        core              keypress at UART 0/TTY\par
+list\tab\tab core\par
+list2vector\tab core\tab\tab\tab convert list to vector\par
+ls\tab\tab core\tab\tab\tab current directory listing\par
+not\tab\tab core\par
+pairp\tab\tab core\par
+print\tab\tab core\par
+quit\tab\tab core\tab\tab\tab stop, show statistics\par
+read\tab\tab core\par
+readreg\tab core\tab\tab\tab read I/O register\par
+real2int\tab core\tab\tab\tab convert real to integer\par
+realp\tab\tab core\par
+rplaca\tab core\par
+rplacd\tab core\par
+setetop\tab core\tab\tab\tab get rest after/truncate-to mark in env\par
+sym2int\tab core\tab\tab\tab convert symbol first character to integer
+\par
+symbolp\tab core\par
+vectorp\tab core\par
+verbose\tab core\tab\tab\tab verbosity (include level display) in REPL
+\par
+vlen\tab\tab core\tab\tab\tab vector length\par
+vref\tab\tab core\tab\tab\tab vector element reference\par
+vset\tab\tab core\tab\tab\tab vector element store\par
+writereg\tab core\tab\tab\tab write I/O register\par
+zerop\tab\tab core\par
+~\tab\tab core\tab\tab\tab integer (bitwise) complement\par
+>>\tab\tab core\tab\tab\tab integer arithmetic shift right\par
+<<\tab\tab core\tab\tab\tab integer shift left\par
+\par
+atoi\tab\tab l/clib\par
+ceil\tab\tab l/clib\par
+fclose\tab l/clib\par
+fgetc\tab\tab l/clib\par
+floor\tab\tab l/clib\par
+fopen\tab\tab l/clib\par
+fputc\tab\tab l/clib\par
+getchar\tab l/clib\par
+isalpha\tab l/clib\par
+isdigit\tab l/clib\par
+isspace\tab l/clib\par
+pow\tab\tab l/clib\par
+putchar\tab l/clib\par
+rewind\tab l/clib\par
+sprintf\tab l/clib\par
+sqrt\tab\tab l/clib\par
+stderr\tab l/clib\par
+stdin\tab\tab l/clib\par
+stdio\tab\tab l/clib\par
+stdout\tab l/clib\par
+toupper\tab l/clib\par
+ungetc\tab l/clib\par
+\par
+FLASH_COL\tab l/ez80\tab\tab eZ80 I/O and GPIO register access\par
+FLASH_DATA\tab l/ez80\par
+FLASH_FDIV\tab l/ez80\par
+FLASH_KEY\tab l/ez80\par
+FLASH_PAGE\tab l/ez80\par
+FLASH_PGCTL\tab l/ez80\par
+FLASH_PROT\tab l/ez80\par
+FLASH_ROW\tab l/ez80\par
+gpin\tab\tab l/ez80\par
+gpout\tab\tab l/ez80\par
+PA_ALT1\tab l/ez80\par
+PA_ALT2\tab l/ez80\par
+PA_DDR\tab l/ez80\par
+PA_DR\tab\tab l/ez80\par
+PB_ALT1\tab l/ez80\par
+PB_ALT2\tab l/ez80\par
+PB_DDR\tab l/ez80\par
+PB_DR\tab\tab l/ez80\par
+PC_ALT1\tab l/ez80\par
+PC_ALT2\tab l/ez80\par
+PC_DDR\tab l/ez80\par
+PC_DR\tab\tab l/ez80\par
+PD_ALT1\tab l/ez80\par
+PD_ALT2\tab l/ez80\par
+PD_DDR\tab l/ez80\par
+PD_DR\tab\tab l/ez80\par
+regbclr\tab l/ez80\par
+regbset\tab l/ez80\par
+RTC_CEN\tab l/ez80\par
+RTC_CTRL\tab l/ez80\par
+RTC_DOM\tab l/ez80\par
+RTC_DOW\tab l/ez80\par
+RTC_HRS\tab l/ez80\par
+RTC_MIN\tab l/ez80\par
+RTC_MON\tab l/ez80\par
+RTC_SEC\tab l/ez80\par
+RTC_YR\tab l/ez80\par
+\par
+add\tab\tab l/lang\tab\tab variadic add\par
+and\tab\tab l/lang\tab\tab variadic logical and\par
+append\tab l/lang\par
+apply\tab\tab l/lang\par
+arithmetc\tab l/lang\tab\tab(+,-,*,/, etc.)\par
+assoc\tab\tab l/lang\par
+assq\tab\tab l/lang\par
+atom\tab\tab l/lang\par
+backquote\tab l/lang\tab\tab quasiquote\par
+caaaar\tab l/lang\par
+caaadr\tab l/lang\par
+caaar\tab\tab l/lang\par
+caadar\tab l/lang\par
+caaddr\tab l/lang\par
+caadr\tab\tab l/lang\par
+caar\tab\tab l/lang\par
+cadaar\tab l/lang\par
+cadadr\tab l/lang\par
+cadar\tab\tab l/lang\par
+caddar\tab l/lang\par
+cadddr\tab l/lang\par
+caddr\tab\tab l/lang\par
+cadr\tab\tab l/lang\par
+case\tab\tab l/lang\par
+cats\tab\tab l/lang\tab\tab variablic symbol concatenation\par
+cdaaar\tab l/lang\par
+cdaadr\tab l/lang\par
+cdaar\tab\tab l/lang\par
+cdadar\tab l/lang\par
+cdaddr\tab l/lang\par
+cdadr\tab\tab l/lang\par
+cdar\tab\tab l/lang\par
+cddaar\tab l/lang\par
+cddadr\tab l/lang\par
+cddar\tab\tab l/lang\par
+cdddar\tab l/lang\par
+cddddr\tab l/lang\par
+cdddr\tab\tab l/lang\par
+cddr\tab\tab l/lang\par
+cond\tab\tab l/lang\par
+constant\tab l/lang\tab\tab make constant from expression\par
+div\tab\tab l/lang\tab\tab variadic divide\par
+eql\tab\tab l/lang\par
+equal\tab\tab l/lang\par
+for\tab\tab l/lang\par
+global\tab l/lang\tab\tab bind in top environment\par
+_greater\tab l/lang\tab\tab dyadic greater-than\par
+greater\tab l/lang\tab\tab variadic greater-than\par
+_greaterorequal\par
+\tab\tab l/lang\tab\tab dyadic greater-than or equal\par
+greaterorequal\par
+\tab\tab l/lang\tab\tab variadic greater-than or equal\par
+iand\tab\tab l/lang\tab\tab variadic integer (bitwise) and\par
+ior\tab\tab l/lang\tab\tab variadic integer (bitwise) and\par
+ixor\tab\tab l/lang\tab\tab variadic integer (bitwise) exclusive or\par
+_land\tab\tab l/lang\tab\tab dyadic logical and\par
+length\tab l/lang\par
+less\tab\tab l/lang\tab\tab variadic less-than\par
+_lessorequal\par
+\tab\tab l/lang\tab\tab dyadic less-than or equal\par
+lessorequal\tab l/lang\tab\tab variadic less-than or equal\par
+let\tab\tab l/lang\par
+lets\tab\tab l/lang\tab\tab let-sequential (let*)\par
+listp\tab\tab l/lang\par
+_lor\tab\tab l/lang\tab\tab dyadic logical or\par
+mul\tab\tab l/lang\tab\tab variadic multiply\par
+n-ary\tab\tab l/lang\tab\tab supports variadic functions\par
+nlprint\tab l/lang\tab\tab print, follow with newline\par
+nth\tab\tab l/lang\par
+null\tab\tab l/lang\par
+numberp\tab l/lang\tab\tab true if real or integer\par
+order-nary\tab l/lang\tab\tab supports variadic functions\par
+or\tab\tab l/lang\tab\tab variadic logical or\par
+reverse\tab l/lang\par
+sub\tab\tab l/lang\tab\tab variadic subtract\par
+switch\tab l/lang\tab\tab C-like switch\par
+vector2list\tab l/lang\tab\tab convert vector to list\par
+vector\tab l/lang\par
+while\tab\tab l/lang\tab\tab C-like while\par
+\par
+author\tab l/util\tab\tab Show author name and address\par
+debug\tab\tab l/util\tab\tab debug function\par
+discard\tab l/util\tab\tab Swallow expression, return "" symbol\par
+expand\tab l/util\tab\tab Show expression with all macros expanded\par
+import\tab l/util\tab\tab Create load/apply stub for symbol\par
+load\tab\tab l/util\tab\tab load file, evaluate all expressions\par
+makerlisp\tab l/util\tab\tab System start-up\par
+nopatch\tab l/util\tab\tab Turn off JIT and macro patching\par
+patchon\tab l/util\tab\tab Restore JIT and macro patching\par
+repl\tab\tab l/util\tab\tab second-level REPL\par
+trace\tab\tab l/util\tab\tab trace function or macro\par
+undebug\tab l/util\tab\tab Turn off debugger break on function\par
+untrace\tab l/util\tab\tab Turn off trace of function or macro\par
+user\tab\tab l/util\tab\tab User start-up\par
+version\tab l/util\tab\tab Software version\par
+\par
+}

@@ -1,0 +1,56 @@
+How to wire all four boards (CPU, I/O expansion, USB keyboard controller, VGA controller) for the
+MakerLisp Machine
+
+0. Please review the HW reference manual in doc/manuals/mlmhwref.pdf.
+
+-----
+
+1. Eight female-to-female jumper wires are required. One source is the Velleman Store,
+https://www.vellemanstore.com, part number WJW012, "Set of AWG Breadboard jumper wires - one pin
+female to female - 5.9". This is a package of 10 wires in 5 colors, 2 of each color.
+
+2. We recommend using the two black wires for ground, and the two red wires for 5V.
+
+3. The source of 5V and ground for the USB keyboard controller and the VGA display controller,
+should be I/O expansion board power distribution groups to the left and right of the GPIO pins at
+the front (away from barrel jack, debug connector, and battery/external power headers) edge of
+the expansion board. When the expansion board is oriented so the front is faciing you, +5V will be
+on the outside left and ground will be on the outside right of these 3-pin groups (the middle pin
+is 3.3V).  
+
+4. Of course, keep power off while making these connections, until the connections are all there
+and you have checked that they are correct.
+
+5. VGA display controller connections:
+
+a. 5V "5" pin on VGA board to expansion board power distribution 5V.
+
+b. Ground "G" pin on VGA board to expansion board power distribution ground.
+
+c. Receive "RX" pin on VGA board to expansion board GPIO "PD0".
+
+d. Communication, terminal ready indicator "C" pin on VGA board to expansdion board GPIO "PB1".
+
+e. Transmit "TX" pin on VGA board to USB keyboard controller "R" (see below).
+
+6. USB keyboard controller
+
+a. 5V "5" pin on USB board to (other) expansion board power distribution 5V.
+
+b. Ground "G" pin on USB board to (other) expansion board power distribution ground.
+
+c. Receive "R" pin on USB board to VGA board "TX" (see above).
+
+d. Transmit "T" pin on USB board to expansion board GPIO "PD1".
+
+7. Turn on power and wait for the beep !
+
+8. If your keyboard does not seem to be doing anything, check the "RX" jumper on the expansion
+board. For input from a USB keyboard, and NOT the USB/UART connection, you want this jumper
+REMOVED, not bridging the two header pins front to back. Consult the hardware reference manual
+noted in step 0.
+
+9. When setting up external circuits, on a breadboard for example, you may find uses for the
+expansion board's regulated 3.3V power. Also, you may need to adjust the routing of 5V and ground
+from the expansion board, to a bus on the breadboard, so other components and circuits can
+connect to the same 5V and ground supplied by the expansion board.

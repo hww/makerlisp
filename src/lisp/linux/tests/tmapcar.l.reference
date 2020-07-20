@@ -1,0 +1,39 @@
+MakerLisp Version 1.3
+; Test mapcar and other appropriately-aggressive JIT situations
+(define foo (lambda (f x) (f x x)))
+(#Address (f x) (LOADC #Address (f x x)))
+(foo + 1)
+2
+(foo - 1)
+0
+(foo cats 'a)
+aa
+foo
+(#Address (f x) (LOADC #Address (f x x)))
+
+(mapcar car '((a 1) (b 2) (c 3)))
+(a b c)
+(mapcar cdr '((a 1) (b 2) (c 3)))
+((1) (2) (3))
+(mapcar cadr '((a 1) (b 2) (c 3)))
+(1 2 3)
+mapcar
+(#Address (f l) (GET00 NOT SELECT (QUOTE ()) (EVALC (GET00 CDR GET10 GETB #Address APPLY) EVALC (LOADC #Address (f (car l))) CONS)))
+
+(define reduce
+  (lambda (function initial-value lst)
+    (if (null lst)
+      initial-value
+      (reduce function
+        (apply function (list initial-value (car lst)))
+        (cdr lst)))))
+(#Address (function initial-value lst) (LOADC #Address (if (null lst) initial-value (reduce function (apply function (list initial-value (car lst))) (cdr lst)))))
+
+(reduce + 0 '(1 2 3 4 5))
+15
+(reduce + 999 '(1 2 3 4))
+1009
+
+reduce
+(#Address (function initial-value lst) (GET00 NOT SELECT (GET10) (GET00 CDR EVALC (EVALC (GET00 CAR GET10 LIST) GET20 QUOTE (#Address (f args) (EVALC (GET00 GETD _quoteargs 1 APPLY) QUOTE f CONS EVAL)) APPLY) GET20 GETB #Address APPLY)))
+Bytes: 32784/34240, Symbols: 95, Hits: 754/1096, Collections: 145

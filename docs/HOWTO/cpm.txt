@@ -1,0 +1,99 @@
+How to run CP/M on the MakerLisp Machine
+
+The Makerlisp software distribution now includes a port of CP/M 2.2. This port of CP/M, in
+"src/cpm", provides the entire CP/M OS (BDOS, BIOS, and CCP) as an eZ80 flash image. CP/M disk
+images, which are contained in files on a FAT32 filesystem SD card, are used to access CP/M program
+and data files.
+
+This port exists because of the generous and expert efforts of Christopher David Farrar, an
+embedded software engineer and CP/M enthusiast, who responded to an inquiry on a vintage computing
+Facebook group. I am extremely grateful for his contributions to, and enthusiastic support of, the
+MakerLisp Machine project. The port that is provided here is practically useful, but may also be
+thought of as a demonstration, or proof of concept. Chris has other configuration options and
+features available for this CP/M port, and will continue to develop and maintain it going forward.
+For more information, contact him at cfarrar@roadrunner.com.
+
+To run CP/M, you need two things:
+
+1) The CP/M port firmware, loaded to the eZ80 flash rom.
+
+2) At least one CP/M disk image on an SD card, representing drive "A:". This image can be empty.
+
+The CP/M OS firmware can be loaded to the eZ80 flash rom with the same utility that is used to
+update the MakerLisp system software, "romupd.l" (see "doc/HOWTO/update.txt" for reference). The
+MakerLisp filesystem image that you have loaded to your SD card, when you are running MakerLisp,
+now contains the CP/M flash rom image that you need, in "/etc/cpm.rom". Load it to flash, like so:
+
+(romupd '/etc/cpm.rom)
+
+This will take about three minutes. When it is complete, you are still in MakerLisp. MakerLisp
+runs in ram memory, and only copies the flash rom to ram at power-up or reset. To start CP/M,
+power cycle or reset the MakerLisp Machine CPU. If you have an SD card inserted that contains at
+least one CP/M disk image of the right name, in the right location (this can be the same SD card
+used for the MakerLisp system), CP/M will boot, print the sign-on message, select the "A:" drive,
+and present a prompt:
+
+MakerLisp 62k CP/M Version 2.2
+Copyright (c) 1979 by Digital Research.
+
+A>
+
+If no suitable disk image file is found, CP/M will report an error, and wait for you to strike a
+key, after which it will retry, until it successfully finds a disk image for the "A:" drive.
+
+The CP/M hard disk image files supported by this port, emulate 8 MB hard disks, and are of the
+"wbw_hd0" geometry, as described in the "diskdefs" file, in src/uSDImage/cpm/diskimg. These hard
+disk images are created and accessed with "Cpmtools 2.0", available from
+
+http://www.moria.de/~michael/cpmtools
+
+and also available in installation packages for several Linux distributions. The "diskdefs" file,
+in Linux installations, gets copied to "/etc/cpmtools", to enable the geometries it describes, for
+use with cpmtools. See the cpmtools documentation for detailed installation instructions for
+your computer's operating system.
+
+The MakerLisp CP/M port, as delivered in "/etc/cpm.rom", supports up to four CP/M disk images:
+
+"A:" in "cpmdiska.img"
+"B:" in "cpmdiskb.img"
+"C:" in "cpmdiskc.img"
+"D:" in "cpmdiskd.img"
+
+The "cpmdisk?.img" files may be either in the root directory of the SD card, or in "/etc". The
+MakerLisp filesystem image has a demonstration "cpmdiska.img" file in "/etc", so you can start
+using CP/M immediately, with a standard MakerLisp filesystem, by simply flashing the CP/M firmware
+in "cpm.rom" with "romupd.l", as described above. This CP/M disk image is also in
+"src/uSDImage/cpm/diskimg/images.zip", in the file "cpmdemo.img". The "src/uSDImage/cpm" directory
+also has corresponding binary files, source and documentation for the contents of the demo disk
+image.
+
+CP/M executables "romimg.com", "romcmp.com", and "romupd.com" flash rom utilities, written in
+Aztec C, are provided on the demo disk image, along with the source and tools required to build
+them, and they work just like their MakerLisp counterparts. A "lisp.rom" flash rom image is there
+too, so you can flip back to MakerLisp, from CP/M, like so:
+
+romupd lisp.rom
+
+and then reset.
+
+A note on CP/M program portability, and the MakerLisp Machine - CP/M programs ran on machines that
+had widely varying functionality in keyboards and displays. Most CP/M programs expected keyboards
+and displays that acted like ASCII or ANSI terminals, but these programs could be configured to
+use different screen layouts and terminal command escape sequences, depending on the particulars
+of the target system. "Wordstar" is a good example. We have tried a couple of Wordstar
+executables downloaded from retro-computing archive sites, and they *work*, with the following
+caveats:
+
+1) The MakerLisp Machine's VGA dispay controller's default screen layout has 30 rows, but most
+Wordstar installations have been configured for a 24 or 25 line display.
+
+2) The VGA display controller's ANSI terminal emulation is not complete, and Wordstar will
+sometimes use ANSI escape sequences that are not supported yet by the VGA display.
+
+3) However, the PuTTY terminal emulator is set up for a 25 line display, and supports a full
+complement of ANSI terminal commands. Wordstar seems to work perfectly on the MakerLisp Machine
+CPU when it's hooked up to PuTTY via the USB/UART connection.
+
+We will be improving the VGA display controller terminal emulation, going forward, of course.
+Please contact MakerLisp at info@makerlisp.com, or Chris Farrar, at cfarrar@roadrunner.com, for
+more information about, or help using, CP/M on the MakerLisp Machine.

@@ -1,0 +1,1010 @@
+Index: ./include/std/Stddef.h
+==================================================================
+--- ./include/std/Stddef.h
++++ ./include/std/Stddef.h
+@@ -1,9 +1,12 @@
+ /*************************************************
+  *  Copyright (C) 1999-2008 by  Zilog, Inc.
+  *  All Rights Reserved
+  *************************************************/
++
++/* Modified for MakerLisp */
++
+ #ifndef STDDEF_H
+ #define STDDEF_H
+ 
+ #ifndef SIZE_T_DEFINED
+ #define SIZE_T_DEFINED
+@@ -13,13 +16,13 @@
+ #ifndef NULL
+ #define NULL	(void *)0
+ #endif
+ #define offsetof(type,member)   ((size_t) &((type*)0)->member)
+ 
+-typedef unsigned int ptrdiff_t;
++typedef int ptrdiff_t;
+ 
+ #ifndef WCHAR_T_DEFINED
+ #define WCHAR_T_DEFINED
+ typedef unsigned short wchar_t;
+ #endif
+ 
+ #endif
+
+Index: ./include/zilog/uart.h
+==================================================================
+--- ./include/zilog/uart.h
++++ ./include/zilog/uart.h
+@@ -10,10 +10,12 @@
+  *
+  *  Copyright (C) 1999-2004 by  ZiLOG, Inc.
+  *  All Rights Reserved.
+  */
+ 
++/* Modified for MakerLisp */
++
+ #ifndef _UART_H_
+ #define _UART_H_
+ 
+ #include <defines.h>
+ #include <uartdefs.h>
+@@ -113,12 +115,13 @@
+ #define FIFO_TRGLVL_8			8		            //!< FIFO trigger level 8.
+ #define FIFO_TRGLVL_14			14		            //!< FIFO trigger level 14.
+ #define FIFO_TRGLVL_NONE		0					//!< FIFO is disabled.
+ 
+ #define FLUSHFIFO_TX			1	    	        //!< Flush the software transmit FIFO.
+-#define FLUSHFIFO_RX			2		            //!< Flush the software receive FIFO.
+-#define FLUSHFIFO_ALL			3		            //!< Flush the software transmit FIFO.
++#define FLUSHFIFO_RX			2		            //!< Flush the receive FIFO, SW and HW
++#define FLUSHFIFO_ALL			3		            //!< Flush the transmit FIFO, SW and HW
++#define FLUSHFIFO_RX_SW			4		            //!< Flush only the SW receive FIFO
+ 
+ #define ENABLE_HWFLOW_CONTROL			1			//!< The default hardware control setting (0=disable; 1=enable).
+ #define DISABLE_HWFLOW_CONTROL			0
+ 
+ #define ENABLE_SWFLOW_CONTROL			1			//!< The default software control setting (0=disable; 1=enable).
+@@ -190,11 +193,14 @@
+ 	UINT16 next_out ;				//!< The out-pointer
+ 	UINT16 size ;					//!< The FIFO buffer size
+ 
+ } FIFO ;
+ 
+-
++/* Hold variables, break (^C) handlers for UART0 and UART1 */
++typedef void (*PFV)();
++extern BYTE hold_UART0, hold_UART1;
++extern PFV brkh_UART0, brkh_UART1;
+ 
+ /*!
+  * \brief Get a character.
+  */
+ // INT getch( VOID ) ;	/* moved to <cio.h> */
+@@ -297,10 +303,14 @@
+ /*!
+  * \brief Close the UART0 device.
+  */
+ VOID close_UART0( VOID ) ;
+ 
++/*!
++ * \brief Set break (^C) handler for UART0
++ */
++PFV setbrkh_UART0( PFV handler ) ;
+ 
+ /*!
+  * \brief Initialize the UART1 device.
+  */
+ UCHAR open_UART1( UART *pUART ) ;
+@@ -383,9 +393,13 @@
+ /*!
+  * \brief Close the UART1 device.
+  */
+ VOID close_UART1( VOID ) ;
+ 
++/*!
++ * \brief Set break (^C) handler for UART1
++ */
++PFV setbrkh_UART1( PFV handler ) ;
+ 
+ 
+ #endif /*! _UART_H_ */
+ 
+
+Index: ./src/boot/eZ80F91/init_params_f91.asm
+==================================================================
+--- ./src/boot/eZ80F91/init_params_f91.asm
++++ ./src/boot/eZ80F91/init_params_f91.asm
+@@ -3,10 +3,12 @@
+ ;
+ ; minimum eZ80F91 initialization
+ ;*****************************************************************************
+ ; Copyright (C) 2005 by ZiLOG, Inc.  All Rights Reserved.
+ ;*****************************************************************************
++
++; Modified for Makerlisp
+ 
+         INCLUDE "ez80f91.inc"
+ 
+         
+         XREF __stack
+@@ -78,11 +80,12 @@
+     out0 (FLASH_IRQ), a      ; Flash
+     ld a, %04
+     out0 (SPI_CTL), a        ; SPI
+     in0 a, (RTC_CTRL)        ; RTC, Writing to the RTC_CTRL register also
+     and a, %BE               ;      resets the RTC count prescaler allowing
+-    out0 (RTC_CTRL), a       ;      the RTC to be synchronized to another
++; LJ - Don't do this, this resets the RTC counter, losing time
++;   out0 (RTC_CTRL), a       ;      the RTC to be synchronized to another
+                              ;      time source. 
+ 
+     ; configure external memory/io
+     ld a, __CS0_LBR_INIT_PARAM
+     out0 (CS0_LBR), a
+
+Index: ./src/buildzsl.bat
+==================================================================
+--- ./src/buildzsl.bat
++++ ./src/buildzsl.bat
+@@ -2,10 +2,11 @@
+ @REM  Batch file to run ZDS II and build all zsl libraries 
+ @REM 
+ @REM  ZiLOG, Inc.
+ @REM ----------------------------------------------------
+ 
++@REM Modified for MakerLisp
+ 
+ @REM +--Setting environment variables-------------------+
+ @set ZDSPATH=..
+ @set BIN=%ZDSPATH%\bin
+ @set INC=%ZDSPATH%\include
+@@ -15,11 +16,11 @@
+ @set ASM=%BIN%\ez80asm.exe
+ @set CC=%BIN%\eZ80cc.exe
+ @set LIB=%BIN%\ez80lib.exe
+ 
+ @set GPIO_C_SRC=closeporta.c closeportb.c closeportc.c closeportd.c controlporta.c controlportb.c controlportc.c controlportd.c getsettingsporta.c getsettingsportb.c getsettingsportc.c getsettingsportd.c openporta.c openportb.c openportc.c openportd.c setmodeporta.c setmodeportb.c setmodeportc.c setmodeportd.c
+-@set UART_C_SRC=clearbreakuart0.c clearbreakuart1.c closeuart0.c closeuart1.c controluart0.c controluart1.c disableparityuart0.c disableparityuart1.c enableparityuart0.c enableparityuart1.c fifoadd.c fifoempty.c fifofull.c fifoget0.c fifoget1.c flushuart0.c flushuart1.c getch.c isruart0.c isruart1.c kbhit.c openuart0.c openuart1.c peekc.c peekcuart0.c peekcuart1.c putch.c readuart0.c readuart1.c sendbreakuart0.c sendbreakuart1.c setbauduart0.c setbauduart1.c setdatabitsuart0.c setdatabitsuart1.c setparityuart0.c setparityuart1.c setstopbitsuart0.c setstopbitsuart1.c settriggerleveluart0.c settriggerleveluart1.c writeuart0.c writeuart1.c
++@set UART_C_SRC=clearbreakuart0.c clearbreakuart1.c closeuart0.c closeuart1.c controluart0.c controluart1.c disableparityuart0.c disableparityuart1.c enableparityuart0.c enableparityuart1.c fifoadd.c fifoempty.c fifofull.c fifoget0.c fifoget1.c flushuart0.c flushuart1.c getch.c isruart0.c isruart1.c kbhit.c openuart0.c openuart1.c peekc.c peekcuart0.c peekcuart1.c putch.c readuart0.c readuart1.c sendbreakuart0.c sendbreakuart1.c setbauduart0.c setbauduart1.c setbrkhuart0.c setbrkhuart1.c setdatabitsuart0.c setdatabitsuart1.c setparityuart0.c setparityuart1.c setstopbitsuart0.c setstopbitsuart1.c settriggerleveluart0.c settriggerleveluart1.c writeuart0.c writeuart1.c
+ 
+ @set CPU=EZ80F91
+ @set STDINC=%INC%\std
+ @set ZLGINC=%INC%\zilog
+ @set CFLG_DBG=-debug -reduceopt -define:_EZ80ACCLAIM! -define:DEBUG
+
+Index: ./src/rtl/common/puts.asm
+==================================================================
+--- ./src/rtl/common/puts.asm
++++ ./src/rtl/common/puts.asm
+@@ -1,6 +1,9 @@
+ ; Copyright (C) 1999-2008 Zilog, Inc, All Rights Reserved
++
++;  Modified for MakerLisp
++
+ 	FILE	".\puts.asm"
+ 	.ASSUME	ADL=1
+ 	SEGMENT CODE
+ 
+ ; puts - put a string to stdout
+@@ -36,17 +39,17 @@
+ 
+ _done:
+ 	ld		hl,	%a
+ 	push	hl
+ 	call	_putch			;putch('\n')
+-	ld		hl,	%d
+-	push	hl
+-	call	_putch			;putch('\r')
+-	pop		hl
++;	ld		hl,	%d
++;	push	hl
++;	call	_putch			;putch('\r')
++;	pop		hl
+ 	pop		hl
+ 	or		a,	a
+ 	sbc		hl,	hl			;return 0
+ 	ret
+ 
+ 
+ 	XREF _putch:ROM
+ 	XDEF _puts
+
+Index: ./src/uart/common/controluart0.c
+==================================================================
+--- ./src/uart/common/controluart0.c
++++ ./src/uart/common/controluart0.c
+@@ -10,10 +10,12 @@
+  *
+  *  Copyright (C) 1999-2004 by  ZiLOG, Inc.
+  *  All Rights Reserved.
+  */
+ 
++/* Modified for MakerLisp */
++
+ #include <ez80.h>
+ #include <uart.h>
+ 
+ 
+ 
+@@ -188,11 +190,15 @@
+ 		flush_UART0( FLUSHFIFO_ALL ) ;											//! Flush all FIFOs.
+ 
+ 		UART0_FCTL = ((pUART->fifoTriggerLevel&(BYTE)0xFC)<<4) | UART_FCTL_CLRTxF | UART_FCTL_CLRRxF | UART_FCTL_FIFOEN ;	//! Enable the hardware FIFOs and set receive FIFO trigger level.
+ 
+ 		//! Enable receive, transmit and line status interrupts (include hardware flow control interrupt, if enabled).
++#ifdef UART0_TX_INTEN
+ 		UART0_IER = (UART_IER_RECEIVEINT|UART_IER_TRANSMITINT|UART_IER_LINESTATUSINT)|(pUART->hwFlowControl<<3) ;
++#else
++		UART0_IER = (UART_IER_RECEIVEINT|UART_IER_LINESTATUSINT)|(pUART->hwFlowControl<<3) ;
++#endif
+ 
+ 		g_HWflowctl_UART0 = pUART->hwFlowControl ;								//! Save this information. This info can be used for sending/receiving data.
+ 
+ 		EI() ;
+ 
+
+Index: ./src/uart/common/controluart1.c
+==================================================================
+--- ./src/uart/common/controluart1.c
++++ ./src/uart/common/controluart1.c
+@@ -10,10 +10,12 @@
+  *
+  *  Copyright (C) 1999-2004 by  ZiLOG, Inc.
+  *  All Rights Reserved.
+  */
+ 
++/* Modified for MakerLisp */
++
+ #include <ez80.h>
+ #include <uart.h>
+ 
+ 
+ 
+@@ -179,11 +181,15 @@
+ 		flush_UART1( FLUSHFIFO_ALL ) ;											//! Flush all FIFOs.
+ 
+ 		UART1_FCTL = ((pUART->fifoTriggerLevel&(BYTE)0xFC)<<4) | UART_FCTL_CLRTxF | UART_FCTL_CLRRxF | UART_FCTL_FIFOEN ;	//! Enable the hardware FIFOs and set receive FIFO trigger level.
+ 
+ 		//! Enable receive, transmit and line status interrupts (include hardware flow control interrupt, if enabled).
++#ifdef UART1_TX_INTEN
+ 		UART1_IER = (UART_IER_RECEIVEINT|UART_IER_TRANSMITINT|UART_IER_LINESTATUSINT)|(pUART->hwFlowControl<<3) ;
++#else
++		UART1_IER = (UART_IER_RECEIVEINT|UART_IER_LINESTATUSINT)|(pUART->hwFlowControl<<3) ;
++#endif
+ 
+ 		g_HWflowctl_UART1 = pUART->hwFlowControl ;								//! Save this information. This info can be used for sending/receiving data.
+ 
+ 		EI() ;
+ 	}
+
+Index: ./src/uart/common/flushuart0.c
+==================================================================
+--- ./src/uart/common/flushuart0.c
++++ ./src/uart/common/flushuart0.c
+@@ -10,10 +10,12 @@
+  *
+  *  Copyright (C) 1999-2004 by  ZiLOG, Inc.
+  *  All Rights Reserved.
+  */
+ 
++/* Modified for MakerLisp */
++
+ #include <ez80.h>
+ #include <uart.h>
+ 
+ /*!
+  * \brief The Software Transmit FIFO for UART0 driver.
+@@ -45,23 +47,27 @@
+ @}
+ */
+ VOID flush_UART0( UCHAR fifo )
+ {
+ 
+-	if( FLUSHFIFO_TX == fifo || FLUSHFIFO_ALL == fifo )					//! Transmit FIFO or both FIFOs to be flushed.
++	if ( ( FLUSHFIFO_TX == fifo ) || ( FLUSHFIFO_ALL == fifo ) )			//! Transmit FIFO or both FIFOs to be flushed.
+ 	{
+ 		g_TxFIFO_UART0.next_in = g_TxFIFO_UART0.next_out = 0 ;			//! Flush transmit software FIFO.
+ 
+-		UART0_FCTL = UART_FCTL_FIFOEN ;									//! Flush transmit hardware FIFO.
++		UART0_FCTL = UART_FCTL_FIFOEN ;						//! Flush transmit hardware FIFO.
+ 		UART0_FCTL = UART_FCTL_CLRTxF | UART_FCTL_CLRRxF | UART_FCTL_FIFOEN ;	//! Flush transmit hardware FIFO.
+ 	}
+ 
+-	if( FLUSHFIFO_RX == fifo || FLUSHFIFO_ALL == fifo )					//! Receive FIFO or both FIFOs to be flushed.
++	if ( ( FLUSHFIFO_RX == fifo ) || ( FLUSHFIFO_ALL == fifo ) || \
++             ( FLUSHFIFO_RX_SW == fifo ) )						//! Receive FIFO or both FIFOs to be flushed.
+ 	{
+ 		g_RxFIFO_UART0.next_in = g_RxFIFO_UART0.next_out = 0 ;			//! Flush receive software FIFO.
++	}
+ 
+-		UART0_FCTL = UART_FCTL_FIFOEN ;									//! Flush receive hardware FIFO.
++	if ( ( FLUSHFIFO_RX == fifo ) || ( FLUSHFIFO_ALL == fifo ) )			//! Receive FIFO or both FIFOs to be flushed.
++	{
++		UART0_FCTL = UART_FCTL_FIFOEN ;						//! Flush receive hardware FIFO.
+ 		UART0_FCTL = UART_FCTL_CLRTxF | UART_FCTL_CLRRxF | UART_FCTL_FIFOEN ;	//! Flush receive hardware FIFO.
+ 	}
+ 	
+ 
+ 	return ;
+
+Index: ./src/uart/common/flushuart1.c
+==================================================================
+--- ./src/uart/common/flushuart1.c
++++ ./src/uart/common/flushuart1.c
+@@ -10,10 +10,12 @@
+  *
+  *  Copyright (C) 1999-2004 by  ZiLOG, Inc.
+  *  All Rights Reserved.
+  */
+ 
++/* Modified for MakerLisp */
++
+ #include <ez80.h>
+ #include <uart.h>
+ 
+ 
+ /*!
+@@ -37,23 +39,27 @@
+  * None 
+  */
+ VOID flush_UART1( UCHAR fifo )
+ {
+ 
+-	if( FLUSHFIFO_TX == fifo || FLUSHFIFO_ALL == fifo )					//! Transmit FIFO or both FIFOs to be flushed.
++	if ( ( FLUSHFIFO_TX == fifo ) || ( FLUSHFIFO_ALL == fifo ) )			//! Transmit FIFO or both FIFOs to be flushed.
+ 	{
+ 		g_TxFIFO_UART1.next_in = g_TxFIFO_UART1.next_out = 0 ;			//! Flush transmit software FIFO.
+ 
+-		UART1_FCTL = UART_FCTL_FIFOEN ;									//! Flush transmit hardware FIFO.
++		UART1_FCTL = UART_FCTL_FIFOEN ;						//! Flush transmit hardware FIFO.
+ 		UART1_FCTL = UART_FCTL_CLRTxF | UART_FCTL_CLRRxF | UART_FCTL_FIFOEN ;	//! Flush transmit hardware FIFO.
+ 	}
+ 
+-	if( FLUSHFIFO_RX == fifo || FLUSHFIFO_ALL == fifo )					//! Receive FIFO or both FIFOs to be flushed.
++	if ( ( FLUSHFIFO_RX == fifo ) || ( FLUSHFIFO_ALL == fifo ) || \
++             ( FLUSHFIFO_RX_SW == fifo ) )						//! Receive FIFO or both FIFOs to be flushed.
+ 	{
+ 		g_RxFIFO_UART1.next_in = g_RxFIFO_UART1.next_out = 0 ;			//! Flush receive software FIFO.
++	}
+ 
+-		UART1_FCTL = UART_FCTL_FIFOEN ;									//! Flush receive hardware FIFO.
++	if ( ( FLUSHFIFO_RX == fifo ) || ( FLUSHFIFO_ALL == fifo ) )			//! Receive FIFO or both FIFOs to be flushed.
++	{
++		UART1_FCTL = UART_FCTL_FIFOEN ;						//! Flush receive hardware FIFO.
+ 		UART1_FCTL = UART_FCTL_CLRTxF | UART_FCTL_CLRRxF | UART_FCTL_FIFOEN ;	//! Flush receive hardware FIFO.
+ 	}
+ 	
+ 
+ 	return ;
+
+Index: ./src/uart/common/isruart0.c
+==================================================================
+--- ./src/uart/common/isruart0.c
++++ ./src/uart/common/isruart0.c
+@@ -10,10 +10,12 @@
+  *
+  *  Copyright (C) 1999-2004 by  ZiLOG, Inc.
+  *  All Rights Reserved.
+  */
+ 
++/* Modified for Makerlisp */
++
+ #include <ez80.h>
+ #include <uart.h>
+ 
+ 
+ /*!
+@@ -54,11 +56,53 @@
+  * to TRUE. When this variable is TRUE the SPR can be used to determine
+  * the exact cause of error.
+  */
+ volatile UCHAR g_recverr0 ;
+ 
++/*!
++ * \brief Break handling.
++ */
+ 
++/* Decide whether to swallow break (^C) or add byte to fifo */
++/* Also, XON/XOFF handling */
++#define CTRLC (3)
++#define DC1 (17)
++#define DC3 (19)
++static void addorbrk(UCHAR c)
++{
++	/* Handler set and ^C detected ? */
++	if ( brkh_UART0 && (c == CTRLC) )
++	{
++		/* Call break (^C) handler */
++		flush_UART0(FLUSHFIFO_RX_SW);
++		hold_UART0 &= ~(1 << 0);
++		(*brkh_UART0)();
++	}
++	else
++	{
++		/* XON or XOFF characters received ? */
++		switch (c)
++		{
++			case DC1 :
++				hold_UART0 &= ~(1 << 0);
++				break;
++			case DC1 + 128 :
++				hold_UART0 &= ~(1 << 1);
++				break;
++			case DC3 :
++				hold_UART0 |= (1 << 0);
++				break;
++			case DC3 + 128 :
++				hold_UART0 |= (1 << 1);
++				break;
++			default :
++				/* Put byte in receive fifo. */
++				FifoAdd( &g_RxFIFO_UART0, c );
++				break;
++		}
++	}
++}
+ 
+ /*!
+  * \brief The UART0 interrupt service routine.
+  *
+  * This function will service the UART0 interrupt. The handler has to
+@@ -121,11 +165,11 @@
+ 				{
+ 					g_recverr0 = UART_ERR_RECEIVEFIFOFULL ;					//! Set g_recverr0 with software receive FIFO is full error code.
+ 				}
+ 				else														//! There is a space in the software receive FIFO.
+ 				{
+-					FifoAdd( &g_RxFIFO_UART0, UART0_RBR ) ;					//! Read this byte and add it to the software receive fifo.
++					addorbrk( UART0_RBR ) ;                                                 //! Add to fifo or break
+ 				}
+ 			}
+ 
+ 		}//! End of Line Status interrupt.
+ 
+@@ -140,11 +184,11 @@
+ 				{
+ 					g_recverr0 = UART_ERR_RECEIVEFIFOFULL ;					//! Set g_recverr0 with software receive FIFO is full error code.
+ 				}
+ 				else														//! There is a space in the software receive FIFO.
+ 				{
+-					FifoAdd( &g_RxFIFO_UART0, UART0_RBR ) ;					//! Read this byte and add it to the software receive fifo.
++					addorbrk( UART0_RBR ) ;                                                 //! Add to fifo or break
+ 				}
+ 				
+ 			}
+ 
+ 		}//! End of Data Ready\Trigger Level interrupt.
+
+Index: ./src/uart/common/isruart1.c
+==================================================================
+--- ./src/uart/common/isruart1.c
++++ ./src/uart/common/isruart1.c
+@@ -10,10 +10,12 @@
+  *
+  *  Copyright (C) 1999-2004 by  ZiLOG, Inc.
+  *  All Rights Reserved.
+  */
+ 
++/* Modified for MakerLisp */
++
+ #include <ez80.h>
+ #include <uart.h>
+ 
+ 
+ 
+@@ -55,11 +57,53 @@
+  * to TRUE. When this variable is TRUE the SPR can be used to determine
+  * the exact cause of error.
+  */
+ volatile UCHAR g_recverr1 ;
+ 
++/*!
++ * \brief Break handling.
++ */
+ 
++/* Decide whether to swallow break (^C) or add byte to fifo */
++/* Also, XON/XOFF handling */
++#define CTRLC (3)
++#define DC1 (17)
++#define DC3 (19)
++static void addorbrk(UCHAR c)
++{
++	/* Handler set and ^C detected ? */
++	if ( brkh_UART1 && (c == CTRLC) )
++	{
++		/* Call break (^C) handler */
++		flush_UART1(FLUSHFIFO_RX_SW);
++		hold_UART1 &= ~(1 << 0);
++		(*brkh_UART1)();
++	}
++	else
++	{
++		/* XON or XOFF characters received ? */
++		switch (c)
++		{
++			case DC1 :
++				hold_UART1 &= ~(1 << 0);
++				break;
++			case DC1 + 128 :
++				hold_UART1 &= ~(1 << 1);
++				break;
++			case DC3 :
++				hold_UART1 |= (1 << 0);
++				break;
++			case DC3 + 128 :
++				hold_UART1 |= (1 << 1);
++				break;
++			default :
++				/* Put byte in receive fifo. */
++				FifoAdd( &g_RxFIFO_UART1, c );
++				break;
++		}
++	}
++}
+ 
+ /*!
+  * \brief The UART1 interrupt service routine.
+  *
+  * This function will service the UART1 interrupt. The handler has to
+@@ -122,11 +166,11 @@
+ 				{
+ 					g_recverr1 = UART_ERR_RECEIVEFIFOFULL ;					//! Set g_recverr1 with software receive FIFO is full error code.
+ 				}
+ 				else														//! There is a space in the software receive FIFO.
+ 				{
+-					FifoAdd( &g_RxFIFO_UART1, UART1_RBR ) ;					//! Read this byte and add it to the software receive fifo.
++					addorbrk( UART1_RBR ) ;                                                 //! Add to fifo or break
+ 				}
+ 			}
+ 
+ 		}//! End of Line Status interrupt.
+ 
+@@ -141,11 +185,11 @@
+ 				{
+ 					g_recverr1 = UART_ERR_RECEIVEFIFOFULL ;					//! Set g_recverr1 with software receive FIFO is full error code.
+ 				}
+ 				else														//! There is a space in the software receive FIFO.
+ 				{
+-					FifoAdd( &g_RxFIFO_UART1, UART1_RBR ) ;					//! Read this byte and add it to the software receive fifo.
++					addorbrk( UART1_RBR ) ;                                                 //! Add to fifo or break
+ 				}
+ 				
+ 			}
+ 
+ 		}//! End of Data Ready\Trigger Level interrupt.
+
+Index: ./src/uart/common/openuart0.c
+==================================================================
+--- ./src/uart/common/openuart0.c
++++ ./src/uart/common/openuart0.c
+@@ -9,10 +9,13 @@
+  *  automatically.
+  *
+  *  Copyright (C) 1999-2004 by  ZiLOG, Inc.
+  *  All Rights Reserved.
+  */
++
++/* Modified for MakerLisp */
++
+ #include <stddef.h>
+ #include <ez80.h>
+ #include <uart.h>
+ #include <gpio.h>
+ 
+@@ -45,17 +48,20 @@
+ #ifdef _SIMULATE
+ 	return stat ;
+ #else
+ 	UART uart ;
+ 
++	/* Initialize hold variable (XON/XOFF), break (^C) handler */
++	hold_UART0 = 0;
++	brkh_UART0 = NULL;
+ 
+ 	if( NULL == pUART )												//! If null, take default values; else use values specified in the parameter.
+ 	{
+ 		uart.uartMode = INTERRUPT ;									//! Take default values defined in the header file.
+-		uart.baudRate = BAUD_57600 ;
++		uart.baudRate = BAUD_115200 ;
+ 		uart.dataBits = DATABITS_8 ;
+-		uart.stopBits = STOPBITS_2 ;
++		uart.stopBits = STOPBITS_1 ;
+ 		uart.parity = PAR_NOPARITY ;
+ 		uart.fifoTriggerLevel = FIFO_TRGLVL_1 ;
+ 		uart.hwFlowControl = DISABLE_HWFLOW_CONTROL ;				//! Hardware flow control is not supported yet.
+ 		uart.swFlowControl = DISABLE_SWFLOW_CONTROL ;				//! Software flow control is not supported yet.
+ 
+
+Index: ./src/uart/common/openuart1.c
+==================================================================
+--- ./src/uart/common/openuart1.c
++++ ./src/uart/common/openuart1.c
+@@ -9,10 +9,13 @@
+  *  automatically.
+  *
+  *  Copyright (C) 1999-2004 by  ZiLOG, Inc.
+  *  All Rights Reserved.
+  */
++
++/* Modified for MakerLisp */
++
+ #include <stddef.h>
+ #include <ez80.h>
+ #include <uart.h>
+ #include <gpio.h>
+ 
+@@ -35,17 +38,20 @@
+ #ifdef _SIMULATE
+ 	return stat ;
+ #else
+ 	UART uart ;
+ 
++	/* Initialize hold variable (XON/XOFF), break (^C) handler */
++	hold_UART1 = 0;
++	brkh_UART1 = NULL;
+ 
+ 	if( NULL == pUART )												//! If null, take default values; else use values specified in the parameter.
+ 	{
+ 		uart.uartMode = INTERRUPT ;									//! Take default values defined in the header file.
+-		uart.baudRate = BAUD_57600 ;
++		uart.baudRate = BAUD_115200 ;
+ 		uart.dataBits = DATABITS_8 ;
+-		uart.stopBits = STOPBITS_2 ;
++		uart.stopBits = STOPBITS_1 ;
+ 		uart.parity = PAR_NOPARITY ;
+ 		uart.fifoTriggerLevel = FIFO_TRGLVL_1 ;
+ 		uart.hwFlowControl = DISABLE_HWFLOW_CONTROL ;				//! Hardware flow control is not supported yet.
+ 		uart.swFlowControl = DISABLE_SWFLOW_CONTROL ;				//! Software flow control is not supported yet.
+ 
+
+Index: ./src/uart/common/putch.c
+==================================================================
+--- ./src/uart/common/putch.c
++++ ./src/uart/common/putch.c
+@@ -10,10 +10,12 @@
+  *
+  *  Copyright (C) 1999-2004 by  ZiLOG, Inc.
+  *  All Rights Reserved.
+  */
+ 
++/* Modified for MakerLisp */
++
+ #include <uart.h>
+ 
+ /*!
+  * Transmit a data byte on UART0.
+  *
+@@ -26,15 +28,17 @@
+ 	CHAR cnt = 1 ;
+ 	UCHAR stat = UART_ERR_NONE ;
+ 	
+ 
+ 	ch[ 0 ] = ich ;												//!< Copy the character byte to be transmitted.
++#if 0
+ 	if( '\n' == ch[ 0 ] )										//!< See if this is a new line character.
+ 	{															
+ 		ch[ 1 ] = '\r' ;										//!< Add a carriage-return to this character.
+ 		cnt++ ;													//!< Accommodate this carriage-return character.
+ 	}
++#endif
+ 
+ 	
+ #ifdef DEFAULT_UART0
+ 	stat = write_UART0( ch, cnt ) ;								//!< Transmit this byte on UART0.
+ #endif
+
+ADDED   ./src/uart/common/setbrkhuart0.c
+Index: ./src/uart/common/setbrkhuart0.c
+==================================================================
+--- ./src/uart/common/setbrkhuart0.c
++++ ./src/uart/common/setbrkhuart0.c
+@@ -0,0 +1,20 @@
++/* Added for MakerLisp */
++
++/* Get and set break (^C) handler for UART0 */
++#include <uart.h>
++
++/* Hold (XON/XOFF) flag, and break handler */
++BYTE hold_UART0;
++PFV brkh_UART0;
++
++PFV setbrkh_UART0(PFV handler)
++{
++    PFV oldhand;
++
++    di();
++    oldhand = brkh_UART0; 
++    brkh_UART0 = handler;
++    ei();
++
++    return oldhand;
++}
+
+ADDED   ./src/uart/common/setbrkhuart1.c
+Index: ./src/uart/common/setbrkhuart1.c
+==================================================================
+--- ./src/uart/common/setbrkhuart1.c
++++ ./src/uart/common/setbrkhuart1.c
+@@ -0,0 +1,20 @@
++/* Added for MakerLisp */
++
++/* Get and set break (^C) handler for UART1 */
++#include <uart.h>
++
++/* Hold (XON/XOFF) flag, and break handler */
++BYTE hold_UART1;
++PFV brkh_UART1;
++
++PFV setbrkh_UART1(PFV handler)
++{
++    PFV oldhand;
++
++    di();
++    oldhand = brkh_UART1;
++    brkh_UART1 = handler;
++    ei();
++
++    return oldhand;
++}
+
+Index: ./src/uart/common/writeuart0.c
+==================================================================
+--- ./src/uart/common/writeuart0.c
++++ ./src/uart/common/writeuart0.c
+@@ -10,10 +10,12 @@
+  *
+  *  Copyright (C) 1999-2004 by  ZiLOG, Inc.
+  *  All Rights Reserved.
+  */
+ 
++/* Modified for MakerLisp */
++
+ #include <ez80.h>
+ #include <uart.h>
+ 
+ 
+ /*!
+@@ -75,11 +77,15 @@
+ 		
+ 		UART0_THR = pData[ index++ ] ;								//! Write to the holding register.
+ 		
+ 	}
+ #else
++#ifdef UART0_TX_INTEN
+ 	if( INTERRUPT == g_mode_UART0 )										//! The interrupt mode to be used.
++#else
++	if( 0 )
++#endif
+ 	{
+ 		while( 1 )
+ 		{
+ 			
+ 			status = FifoAdd( &g_TxFIFO_UART0, pData[ index ] ) ;
+@@ -114,17 +120,17 @@
+ 	}
+ 	else
+ 	{
+ 		while( 1 )
+ 		{
+-			while (0 == (UART0_LSR & UART_LSR_TEMT)) ;					//! Wait till the current character is transmitted.
+-			if( index == nbytes )										//! On completion, break the while loop.
++			while (hold_UART0 || (0 == (UART0_LSR & UART_LSR_TEMT))) ;	//! Wait while on hold, or current character not yet transmitted
++			if( index == nbytes )						//! On completion, break the while loop.
+ 			{
+ 				break ;
+ 			}
+ 
+-			UART0_THR = pData[ index++ ] ;								//! Write to the holding register.
++			UART0_THR = pData[ index++ ] ;					//! Write to the holding register.
+ 
+ 		}
+ 
+ 	}
+ #endif		//! _SIMULATE
+
+Index: ./src/uart/common/writeuart1.c
+==================================================================
+--- ./src/uart/common/writeuart1.c
++++ ./src/uart/common/writeuart1.c
+@@ -10,10 +10,12 @@
+  *
+  *  Copyright (C) 1999-2004 by  ZiLOG, Inc.
+  *  All Rights Reserved.
+  */
+ 
++/* Modified for MakerLisp */
++
+ #include <ez80.h>
+ #include <uart.h>
+ 
+ 
+ /*!
+@@ -67,11 +69,15 @@
+ 		
+ 		UART1_THR = pData[ index++ ] ;								//! Write to the holding register.
+ 		
+ 	}
+ #else
++#ifdef UART1_TX_INTEN
+ 	if( INTERRUPT == g_mode_UART1 )										//! The interrupt mode to be used.
++#else
++	if( 0 )
++#endif
+ 	{
+ 		while( 1 )
+ 		{
+ 			
+ 			status = FifoAdd( &g_TxFIFO_UART1, pData[ index ] ) ;
+@@ -106,17 +112,17 @@
+ 	}
+ 	else
+ 	{
+ 		while( 1 )
+ 		{
+-			while (0 == (UART1_LSR & UART_LSR_TEMT)) ;					//! Wait till the current character is transmitted.
+-			if( index == nbytes )										//! On completion, break the while loop.
++ 			while ( hold_UART1 || (0 == (UART1_LSR & UART_LSR_TEMT))) ;	//! Wait till the current character is transmitted.
++			if( index == nbytes )						//! On completion, break the while loop.
+ 			{
+ 				break ;
+ 			}
+ 
+-			UART1_THR = pData[ index++ ] ;								//! Write to the holding register.
++			UART1_THR = pData[ index++ ] ;					//! Write to the holding register.
+ 
+ 		}
+ 
+ 	}
+ 
+
+ADDED   ./targets/MLM_Flash.ztgt
+Index: ./targets/MLM_Flash.ztgt
+==================================================================
+--- ./targets/MLM_Flash.ztgt
++++ ./targets/MLM_Flash.ztgt
+@@ -0,0 +1,69 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<Target name="eZ80F910300KITG_Flash" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../Schemas/target.tsd" xsi:type="TargetEZ80">
++   <Clock>
++      <PLL>
++         <changeFrequencyOnReset>true</changeFrequencyOnReset>
++         <chargePumpFreq>1f4</chargePumpFreq>
++         <clockLockCriteria>8</clockLockCriteria>
++         <oscFrequency>5000000</oscFrequency>
++      </PLL>
++      <clockType>PLL</clockType>
++      <frequency>50000000</frequency>
++   </Clock>
++   <ControlReg>
++      <pc>0</pc>
++      <splStackPtr>140000</splStackPtr>
++      <spsStackPtr>FFFF</spsStackPtr>
++      <useAdlMode>true</useAdlMode>
++   </ControlReg>
++   <ExtFlash>
++      <device />
++      <externalAddress>200000</externalAddress>
++      <externalAutoSelect>false</externalAutoSelect>
++      <externalRamLower>40000</externalRamLower>
++      <externalRamUpper>13FFFF</externalRamUpper>
++      <manufacturer />
++      <units>1</units>
++      <usingExternal>false</usingExternal>
++      <usingInternal>true</usingInternal>
++   </ExtFlash>
++   <Memory>
++      <ChipSelects>
++         <CS0>
++            <busMode>0</busMode>
++            <controlRegister>8</controlRegister>
++            <lower>4</lower>
++            <upper>B</upper>
++         </CS0>
++         <CS1>
++            <busMode>0</busMode>
++            <controlRegister>8</controlRegister>
++            <lower>C</lower>
++            <upper>13</upper>
++         </CS1>
++         <CS2>
++            <busMode>0</busMode>
++            <controlRegister>88</controlRegister>
++            <lower>20</lower>
++            <upper>9F</upper>
++         </CS2>
++         <CS3>
++            <busMode>0</busMode>
++            <controlRegister>0</controlRegister>
++            <lower>0</lower>
++            <upper>0</upper>
++         </CS3>
++      </ChipSelects>
++      <Internal>
++         <mapFlashToPage>0</mapFlashToPage>
++         <mapRamToPage>AF</mapRamToPage>
++         <useFlashRam>true</useFlashRam>
++         <useInternalDataRam>true</useInternalDataRam>
++         <useMaccRam>false</useMaccRam>
++      </Internal>
++      <waitStates>4</waitStates>
++   </Memory>
++   <cpu>EZ80F91</cpu>
++   <schemaVersion>1.0.1</schemaVersion>
++   <version>1.00</version>
++</Target>
+
+ADDED   ./targets/MLM_Ram.ztgt
+Index: ./targets/MLM_Ram.ztgt
+==================================================================
+--- ./targets/MLM_Ram.ztgt
++++ ./targets/MLM_Ram.ztgt
+@@ -0,0 +1,69 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<Target name="eZ80F910300KITG_RAM" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../Schemas/target.tsd" xsi:type="TargetEZ80">
++   <Clock>
++      <PLL>
++         <changeFrequencyOnReset>true</changeFrequencyOnReset>
++         <chargePumpFreq>1f4</chargePumpFreq>
++         <clockLockCriteria>8</clockLockCriteria>
++         <oscFrequency>5000000</oscFrequency>
++      </PLL>
++      <clockType>PLL</clockType>
++      <frequency>50000000</frequency>
++   </Clock>
++   <ControlReg>
++      <pc>0</pc>
++      <splStackPtr>100000</splStackPtr>
++      <spsStackPtr>ffff</spsStackPtr>
++      <useAdlMode>true</useAdlMode>
++   </ControlReg>
++   <ExtFlash>
++      <device />
++      <externalAddress>200000</externalAddress>
++      <externalAutoSelect>false</externalAutoSelect>
++      <externalRamLower>000000</externalRamLower>
++      <externalRamUpper>FFFFF</externalRamUpper>
++      <manufacturer />
++      <units>1</units>
++      <usingExternal>false</usingExternal>
++      <usingInternal>true</usingInternal>
++   </ExtFlash>
++   <Memory>
++      <ChipSelects>
++         <CS0>
++            <busMode>0</busMode>
++            <controlRegister>8</controlRegister>
++            <lower>0</lower>
++            <upper>7</upper>
++         </CS0>
++         <CS1>
++            <busMode>0</busMode>
++            <controlRegister>8</controlRegister>
++            <lower>8</lower>
++            <upper>F</upper>
++         </CS1>
++         <CS2>
++            <busMode>0</busMode>
++            <controlRegister>28</controlRegister>
++            <lower>20</lower>
++            <upper>9F</upper>
++         </CS2>
++         <CS3>
++            <busMode>0</busMode>
++            <controlRegister>0</controlRegister>
++            <lower>0</lower>
++            <upper>0</upper>
++         </CS3>
++      </ChipSelects>
++      <Internal>
++         <mapFlashToPage>0</mapFlashToPage>
++         <mapRamToPage>AF</mapRamToPage>
++         <useFlashRam>false</useFlashRam>
++         <useInternalDataRam>true</useInternalDataRam>
++         <useMaccRam>false</useMaccRam>
++      </Internal>
++      <waitStates>4</waitStates>
++   </Memory>
++   <cpu>EZ80F91</cpu>
++   <schemaVersion>1.0.1</schemaVersion>
++   <version>1.00</version>
++</Target>

@@ -1,0 +1,25 @@
+MakerLisp Version 1.3
+#!lisp.sh
+
+(define tak 
+  (lambda (x y z)
+    (if (< y x)
+      (tak (tak (- x 1) y z)
+           (tak (- y 1) z x)
+           (tak (- z 1) x y)
+      )
+      z)))
+(#Address (x y z) (LOADC #Address (if (< y x) (tak (tak (- x 1) y z) (tak (- y 1) z x) (tak (- z 1) x y)) z)))
+
+(define looptak
+  (lambda (n)
+    (if (zerop n)
+      n
+      (progn
+        (tak 18 12 6)
+        (looptak (- n 1))))))
+(#Address (n) (LOADC #Address (if (zerop n) n (progn (tak 18 12 6) (looptak (- n 1))))))
+
+(looptak 1000)
+0
+Bytes: 32064/37448, Symbols: 94, Hits: 659/951, Collections: 43670

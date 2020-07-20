@@ -1,0 +1,66 @@
+Getting started with the MakerLisp Machine
+
+Before getting started, please review the hardware reference manual in doc/manuals/mlmhwref.pdf.
+
+1) You will need a FAT32 formatted micro-SD card, of the SDHC type. SDXC cards WILL NOT WORK. Any
+SDHC card you buy of 32 Gb or less capacity is going to be formatted for FAT32, out of the box.
+Follow the instructions in doc/HOWTO/update.txt to place the SD card filesystem image on the SD
+card. Insert the SD card in the MakerLisp Machine CPU card's micro-SD socket.
+
+a. We recommend SanDisk "Ultra Plus" SDHC cards. Many other brands and varieties also work,
+but this is the inexpensive option with which we have the most test time. Samsung SDHC cards DO NOT
+WORK with this product, we haven't determined the cause yet.
+
+2) If you want to use the real-time calendar clock, you'll need a CR1632 battery. Install it in the
+battery holder of the CPU card. 
+
+3) MakerLisp Machine CPU card alone (no USB keyboard, no VGA display).
+
+a) You will need a USB connector type A to micro type connector cable. Connect the USB/UART on the
+CPU card to your computer, using the USB cable. Your computer may have to load a driver for the
+CPU card's USB/UART, but when it is ready, you should see the yellow LED on the CPU card light up.
+
+b) You need terminal emulator software, to run on another computer, which becomes the terminal for
+MakerLisp Machine CPU. We recommend PuTTY, and there is a note in this directory describing how to
+set up PuTTY for use with the MakerLisp Machine. Set up your terminal emulator software as
+described in ./doc/HOWTO/putty.txt, or set the equivalent parameters in your terminal emulator
+program.
+
+c) The CPU should aready be running. Start typing now, or hit the CPU reset button to start from
+scratch. Now go to "Setting the date and time", below.
+
+4) MakerLisp Machine full system (USB keyboard, VGA display)
+
+a) Follow the instructions in doc/HOWTO/wire.txt to connect all four boards for a complete system.
+
+b) Connect a USB keyboard to the USB keyboard controller and a VGA monitor to the VGA display
+controller.
+
+c) Apply power. The system should start up.
+
+5) Setting the date and time
+
+If you have installed a battery in the CPU card, you can set the date and time.
+
+Note: The first time a program is "auto-loaded" (see doc.manuals/mlmswref.rtf) from the SD card,
+it must be read from the SD card, and as it starts to execute, this may trigger other Lisp form
+definitions to be auto-loaded from the SD card. Once these programs and forms are in memory, this
+will not happen again, but the first time a program is executed, it can incur the costs of loading
+the requisite support from the SD card, and its startup may be slow. So you may set the
+time once, and then you may want to set the time again, now that 'time' is fast, to get the real
+time clock synchronized to the exact second of the clock you are using as a reference.
+
+Set the date:
+
+(date '"4-1-2019")
+
+Set the time (in 24-hour format):
+
+(time '"21:00:01")
+
+6) There are demonstration programs in the "/demo" directory. Try:
+
+(cd '/demo)
+(ls)
+(cat 'hello.l)
+(hello)

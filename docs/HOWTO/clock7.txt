@@ -1,0 +1,75 @@
+Wiring up and running the seven segment LED clock demo
+
+The 'clock7.l' program, in the "/demo" directory of the Makerlisp filesystem, displays the time
+of day, in either HH:MM or MM:SS format, on a four digit, 7 segment LED display. It uses this 
+board, from Embedded Lab, available on Tindie:
+
+https://www.tindie.com/products/rajbex/spi-4-digit-seven-segment-led-display
+
+This board drives the LED display with a Maxim MAX7219 controller chip, which communicates via SPI.
+The clock7.l program demonstrates shared access to the SPI bus (the SD card is also on the eZ80
+SPI bus), GPIO use, and Makerlisp exception handling.
+
+To use this board on a Makerlisp system, you need the I/O expansion board, and of course, a few
+jumper wires. On a full Makerlisp Machine system, if you have the USB keyboard and VGA display
+hooked up, you may have the 5V power and ground pins on the I/O expansion board fully occupied -
+the first thing you will want to do is to run jumpers from the I/O expansion board over to power
+and ground bus rows on your breadboard, and then power the USB keyboard and VGA display boards
+from these bus rows.
+
+Now, to wire up the "SPI 4-digit seven segment LED display" board (you may find the document
+"doc/HOWTO/gpio.txt" helpful as a reference):
+
+1. Connect power, 5V, to the LED display board's "VCC".
+
+2. Connect the I/O expansion board MOSI, GPIO pin "PB7", to the LED display board's "DIN ".
+
+3. Connect 3.3V, from the I/O expansion board (the pin between the 5V and ground pins in the 3
+pin header group to the left or right of the 32 GPIO pins), to a column on the bread board, and
+place one end of a 10k resistor in the same column. Put the other end of the resistor in a
+different column. Place in THAT column, one jumper wire connected to the I/O expansion board GPIO
+pin "PB0", and another, connected to the LED display board's "LOAD". In other words, GPIO "PB0"
+drives the LED display's "LOAD", pulled up through 10k to 3.3V:
+
+          3.3V
+           |
+           |
+          10k
+           |
+           |
+ PB0 ------x-----> LOAD
+
+4. Connect the I/O expansion board SCK, GPIO pin "PB3", to the LED display board's "CLK".
+
+5. Connect ground, 0V, to the LED display board's "GND".
+
+What is happening here is that the LED display board is sitting on the eZ80 SPI bus, and it is
+selected by causing GPIO pin "PB0" to go low, 0V. The MAX7219 reads what is written to it in
+repeated cycles of 16 bits - 8 bits of data to select an internal configuration or data, register
+address, and 8 bits of data to be written to that register.
+
+At eZ80 power-up, all GPIO pins are set as inputs. Until the "clock7.l" program runs, sets pin
+"PB0" as an output, and drives it high (3.3V), to un-select the LED display board, the "PB0" pin
+will be floating. If the "LOAD" (select) pin on the MAX7219 is connected directly to "PB0",
+without a pull-up, it will be floating too. This condition results in the MAX7219 thinking that
+it is selected. The SPI bus is written in the MakerLisp CPU initialization, in order to initialize
+the SD card. The first data that is written to SPI is 80 bytes of '0xFF'. It turns out that a
+continuous stream of ones written to the MAX7219 will write to the 8 bit (binary) address
+"XXXX1111" (display test register, its address is "1111", "X" indicates don't care bits), with
+the 8 bit data "XXXXXXX1" (bit 0 set to "1" means "turn on display test"). So without the "LOAD"
+pin reliably pulled high when it is not driven, powering up or resetting the Makerlisp CPU will
+cause the MAX7219 will enter its display test, lighting all segments continuously, until a command
+is received to turn off the display test.
+
+But with the "LOAD" connected as described above, the MAX7219 is selected only when the "clock7.l"
+program drives "PB0" low. And "clock7" then writes the registers of the MAX7219 to create the time
+of day display, after briefly entering display test mode while it initializes all the necessary
+parameters of the MAX7219 for this application.
+
+'clock7' continuously updates the display with the time of day, blinking the colon (":") that
+separates hours from minutes, or minutes from seconds, in the four digit display. Hitting the
+space bar toggles the display format from "HH:MM" or "MM:SS", to the other. Entering ^C or any
+other character terminates the program, and turns off the LED display.
+
+Try it, and feel free to ask questions about the details of the implementation of clock7, there
+are a few practical MakerLisp language idioms "on display" in this program :)

@@ -1,0 +1,557 @@
+MakerLisp Version 1.3
+#!lisp.sh
+
+#! Test basic functionality
+(define fact 
+  (lambda (x) 
+    (if (zerop x) 1 (* x (fact (- x 1))))))
+(#Address (x) (LOADC #Address (if (zerop x) 1 (* x (fact (- x 1))))))
+
+(define fib
+  (lambda (x)
+    (if (< x 2) 1 (+ (fib (- x 1)) (fib (- x 2))))))
+(#Address (x) (LOADC #Address (if (< x 2) 1 (+ (fib (- x 1)) (fib (- x 2))))))
+
+(define faddn
+  (lambda (n)
+    (lambda (x) (+ x n))))
+(#Address (n) (LOADC #Address (lambda (x) (+ x n))))
+
+(define testcc
+  (lambda (x)
+    (+ 1 (call/cc (lambda (k) (setq r k) x)))))
+(#Address (x) (LOADC #Address (+ 1 (call/cc (lambda (k) (setq r k) x)))))
+
+(define r)
+r
+(testcc 1)
+2
+testcc
+(#Address (x) (EVALC (MAKECC EVALC (LAMBDA ((k) (EVALC (GET00 SETB #Address) JUMPC (GETL 0 1)))) APPLY) QUOTE 1 ADD))
+r
+(CONTINUE #Address)
+(r 22)
+23
+x
+? Unbound variable: "x"
+(define x)
+x
+x
+? Unassigned variable: "x"
+(define y 0)
+0
+(setq x 1)
+1
+(setq x (+ x 1))
+2
+(setq y x)
+2
+(fact 9)
+362880
+(fib 10)
+89
+(define add1 (faddn 1))
+(#Address (x) (LOADC #Address (+ x n)))
+(define sub1 (faddn -1))
+(#Address (x) (LOADC #Address (+ x n)))
+(add1 9)
+10
+(sub1 9)
+8
+'This\ is\ a\ symbol\ with\ spaces
+This is a symbol with spaces
+'"This is \"another\" way to do it"
+This is "another" way to do it
+'[1 2 3]
+[1 2 3]
+[1 2 3]
+[1 2 3]
+[a b c]
+[a b c]
+(define v [1 2 (a b c) 3])
+[1 2 (a b c) 3]
+v
+[1 2 (a b c) 3]
+[]
+[]
+(vref v 2)
+(a b c)
+
+; These were all added to fill out coverage
+(())
+? Unknown function type
+(car ())
+()
+(cdr ())
+()
+(listp (list 'a 'b 'c))
+t
+(listp 'a)
+()
+(listp '())
+t
+(listp '(1 . 2 ))
+t
+(+ 'a 'b)
+? Arguments to "_add" must be two numbers
+(- 'a 'b)
+? Arguments to "_sub" must be two numbers
+(zerop 'a)
+? Argument to "zerop" must be a number
+(include 0)
+? Argument to "include" must be a symbol
+(call/cc 1 2)
+? Arguments to "call/cc": one
+???
+? Unbound variable: "???"
+(define 1 2 3)
+? Arguments to "define": one or two, first a symbol
+(define _add _add)
+? Cannot bind "_add" at top level
+(if 1)
+? Arguments to "if": two or three
+(lambda)
+? "lambda" with no parameter specification
+(macro)
+? "macro" with no parameter specification
+(quote 1 2)
+? Arguments to "quote": one
+(setq 1 2 3)
+? "setq" expects pairs of symbol, value
+(setq ??? 1)
+? Unbound variable: "???"
+(+ 1 2 3)
+6
+(_add 1 2 3)
+? Arguments to "_add": 2
+(define test (lambda (a b c d) a))
+(#Address (a b c d) (LOADC #Address a))
+(test 1 2 3 4)
+1
+test
+(#Address (a b c d) (GETL 3 0))
+123+456
+? Extra input after number: "123+456"
+123.a
+? Extra input after number: "123.a"
+1111111111111111111111111111111111111111111111111111111111111111111111111111111111111
+9223372036854775807
+++1
+? Unbound variable: "++1"
+--1
+? Unbound variable: "--1"
+1..2
+? Extra input after number: "1..2"
+0x123456
+1193046
+0xfFfF
+65535
+0x100000
+1048576
+'g;1
+g
+'"g;1"
+g;1
+'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+? Token too long
+( . b)
+? Unbound variable: "."
+(a . )
+? Expression with no value
+.a
+? Unbound variable: ".a"
+^H
+;^H
+#!^H^H
+; Comments^H
+"^H
+((^H)
+()
+(()^H))
+? Unknown function type
+'"\t\r\n"
+	
+` 
+? Ambiguous syntax after "`"
+x(
+? Unexpected: "("
+)
+? Unexpected: ")"
+()
+()
+x
+2
+'(a .b)
+(a .b)
+(define .x 1)
+1
+. 
+? Unbound variable: "."
+'(a b c . d)
+(a b c . d)
+'(a b c . d e
+? Improper dotted pair
+)
+? Unexpected: ")"
+(define test (lambda () (progn (progn 1))))
+(#Address () (LOADC #Address (progn (progn 1))))
+(test)
+1
+test
+(#Address () (QUOTE 1))
+(< 'a 'b)
+? Arguments to "_less" must be two numbers
+(+ 1 (progn 1 2 3))
+4
+(/ 1 0)
+? Divide by zero
+(/ 1 0.0)
+inf
+(- 1 0.0)
+1.0
+(- 0.0 1)
+-1.0
+(< 1 0.0)
+()
+(< 0.0 1)
+t
+(* 1 1.0)
+1.0
+(zerop 0)
+t
+(zerop 0.0)
+t
+(car 'a)
+a
+(cdr 1)
+? Argument to "cdr", if not () or symbol, must be a pair
+(+ 1 1.0)
+2.0
+(/ 4 2)
+2
+(/ 4.0 2)
+2.0
+(/ 'a 2)
+? Arguments to "_div" must be two numbers
+(* 2.0 2)
+4.0
+(* 'a 'b)
+? Arguments to "_mul" must be two numbers
+(vref 'a 1)
+? Arguments to "vref" must be vector, integer
+(vref [] 0)
+? vref: index out of bounds
+(vector2list 'a)
+? Argument to "vector2list" must be a vector
+(list2vector 'a)
+? Argument to "list2vector" must be a list
+(= 1 1)
+t
+(= 1 1.0)
+t
+(= 1.0 1)
+t
+(= 1.0 1.0)
+t
+(= 'a 'a)
+? Arguments to "_equal" must be two numbers
+(define test (lambda (x) (progn (define y) (setq y 1) (+ x y))))
+(#Address (x) (LOADC #Address (progn (define y) (setq y 1) (+ x y))))
+(test 1)
+2
+test
+(#Address (x) (EVALC (DEFINE y QUOTE y) EVALC (QUOTE 1 SETD y 0) JUMPC (GETD y 0 GET00 ADD)))
+(define test (lambda () (lambda ())))
+(#Address () (LOADC #Address (lambda ())))
+(test)
+(#Address () (LOADC #Address (progn)))
+test
+(#Address () (LAMBDA (() (LOADC #Address (progn)))))
+(if () ())
+()
+(define test (lambda () ???))
+(#Address () (LOADC #Address ???))
+(test)
+? Unbound variable: "???"
+test
+(#Address () (LOADC #Address ???))
+(define oldcar car)
+(ARGC 1 CAR)
+(define test (lambda () (setq car cdr)))
+(#Address () (LOADC #Address (setq car cdr)))
+(test)
+? Top level binding of "car" cannot be changed
+(setq car oldcar)
+? Top level binding of "car" cannot be changed
+(define test (lambda () (setq ??? 1)))
+(#Address () (LOADC #Address (setq ??? 1)))
+(test)
+? Unbound variable: "???"
+(| 1 2)
+3
+(| 1.0 2.0)
+? Arguments to "_ior" must be two integers
+(& -1 -256)
+-256
+(% -5 2)
+-1
+(% 5.0 2)
+? Arguments to "%" must be two integers
+(% 1 0)
+? Divide by zero
+(append '(1 2) '(3 4) '(5 6) '(7 8) (list 9 10))
+(1 2 3 4 5 6 7 8 9 10)
+(+)
+0
+(+ -1)
+-1
+(+ 1 2 3 4 5 6 7 8 9 10)
+55
+(*)
+1
+(* 99)
+99
+(* 1 2 3 4)
+24
+(- 1)
+-1
+(- 55 1 2 3 4 5 6 7 8 9)
+10
+(/ 2)
+0
+(/ 1.0 2 2 2)
+0.125
+(define one 1.0)
+1.0
+(length '(1 2 3))
+3
+(length 'a)
+? Argument to "length" must be a list
+(boundp '?)
+()
+(assignedp '?)
+()
+(define ?)
+?
+(boundp '?)
+t
+(assignedp '?)
+()
+(setq ? '?)
+?
+(assignedp '?)
+t
+1.
+1.0
+1.2a
+? Extra input after number: "1.2a"
+1.2.3
+? Extra input after number: "1.2.3"
+(realp 1.2)
+t
+(symbolp 'a)
+t
+(vectorp [1 2 3])
+t
+(define test (lambda () (define x) (setq x 1)))
+(#Address () (LOADC #Address (progn (define x) (setq x 1))))
+(test)
+1
+test
+(#Address () (EVALC (DEFINE x QUOTE x) JUMPC (QUOTE 1 SETD x 0)))
+(cats 'a 'b)
+ab
+(cats 1 2)
+? Arguments to "_cats" must be two symbols
+(define s 'a)
+a
+(setq s (cats s s))
+aa
+(setq s (cats s s))
+aaaa
+(setq s (cats s s))
+aaaaaaaa
+(setq s (cats s s))
+aaaaaaaaaaaaaaaa
+(setq s (cats s s))
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+(setq s (cats s s))
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+(setq s (cats s s))
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+(setq s (cats s s))
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+(setq s (cats s s))
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+(setq s (cats s s))
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+(setq s (cats s 'a))
+? _cats: length (1025) exceeds maximum (1024) for symbols
+(cats 'abc)
+abc
+(cdr 'abc)
+bc
+(define ifmacro (macro () '(if 1 1 1)))
+(() () (LOADC #Address (quote (if 1 1 1))))
+(define test (lambda () (atom (ifmacro))))
+(#Address () (LOADC #Address (atom (ifmacro))))
+(test)
+t
+test
+(#Address () (EVALC (QUOTE 1 SELECT (QUOTE 1) (LOADC #Address 1)) PAIRP NOT))
+((macro (n) `(+ ,n ,n)) 2)
+(+ 2 2)
+(define x '(1 2))
+(1 2)
+(define y '(3 4))
+(3 4)
+((macro (a b) `(append ,a ,b)) x y)
+(append (1 2) (3 4))
+((macro (a b) `(append ,a ,b)) 'x 'y)
+(append x y)
+(define f (lambda() _add))
+(#Address () (LOADC #Address _add))
+((f))
+? Arguments to "_add": 2
+((f) 1)
+? Arguments to "_add": 2
+((f) 1 2)
+3
+((f) 1 2 3)
+? Arguments to "_add": 2
+(nth 1 '(1 2 3))
+2
+nth
+(() (n l) (EVALC (QUOTE nth FORGET) EVALC (DEFINE _nth EVALC (LAMBDA ((n l) (EVALC (EVALC (GET10 INTEGERP NOT EVALC (LAMBDA (("g;4") (GET00 SELECT (LOADC #Address "g;4") (QUOTE 0 GETL 1 1 LESS)))) APPLY) SELECT (LOADC #Address (error (quote "? First argument to \"nth\" must be a positive integer"))) (QUOTE ())) EVALC (EVALC (GET00 NOT EVALC (LAMBDA (("g;5") (GET00 SELECT (LOADC #Address "g;5") (GETL 0 1 PAIRP)))) APPLY) NOT SELECT (LOADC #Address (error (quote "? Second argument to \"nth\" must be a list"))) (QUOTE ())) JUMPC (GET10 ZEROP SELECT (GET00 CAR) (GET00 CDR QUOTE 1 GET10 SUB GETD _nth 1 APPLY))))) DEFINE _nth) JUMPC (QUOTE () GET00 CONS GET10 CONS QUOTE () GETD _nth 0 CONS QUOTE quote CONS CONS)))
+(nth 1 '(1 2 3))
+2
+(setetop '*mark* '())
+()
+(define _add)
+? Cannot bind "_add" at top level
+_add
+(ARGC 2 ADD)
+(define t t)
+? Unassigned variable: "t"
+(forget '????)
+()
+(setetop '???? '())
+()
+(eval 1 2)
+? Arguments to "eval": one or two, second a continuation
+(*topk* 0)
+0
+(*topk* 1 2)
+? Arguments to continuation: one
+a^D
+(define test (lambda () (define f _add)))
+(#Address () (LOADC #Address (define f _add)))
+(test)
+(ARGC 2 ADD)
+(caddr test)
+(DEFINE f EVALC (QUOTE (ARGC 2 ADD)) DEFINE f)
+(setetop '_MAKERLISP_L_ '())
+#Address
+(define *allow-forget* 't)
+t
+(forget '_MAKERLISP_L_)
+t
+cadr
+? Unbound variable: "cadr"
+(include '<makerlisp.l>)
+MakerLisp Version 1.3
+(cadr '(1 2 3))
+2
+(setetop '*mark* '())
+()
+(print 'Kill^D
+this 
+? Unbound variable: "this"
+line\n 
+? Unbound variable: "line
+"
+... 
+? Unbound variable: "..."
+)
+? Unexpected: ")"
+(define test (lambda (x)))
+(#Address (x) (LOADC #Address (progn)))
+(test)
+? Too few values
+(test 1)
+()
+(test 1 2)
+? Too many values
+(define *never-forget* 't)
+t
+(cadr '(1 2))
+2
+(setq *never-forget* '())
+()
+(cadr '(1 2))
+2
+(forget '*never-forget*)
+t
+(trace cdar)
+(() args (LOADC #Address (progn (nlprint (cons (quote cdar) args)) (cons (quote "g;6") args))))
+(trace cadr)
+(() args (LOADC #Address (progn (nlprint (cons (quote cadr) args)) (cons (quote "g;7") args))))
+(cadr '(1 2))
+(cadr (quote (1 2)))
+2
+(untrace cadr)
+(() (x) (EVALC (QUOTE cadr FORGET) JUMPC (QUOTE () QUOTE () GET00 CONS QUOTE cdr CONS CONS QUOTE car CONS)))
+(forget 'cadr)
+t
+(untrace cdar)
+(() (x) (LOADC #Address (progn (forget (quote cdar)) (backquote (cdr (car (unquote x)))))))
+(include '<stdio.l>)
+(~ -1)
+0
+(~ 'a)
+? Argument to "~" must be an integer
+(real2int (int2real 1))
+1
+(^ 1 -1)
+-2
+'("\a\b\e\r\t\n\\\"")
+("\a\b\e\r\t\n\\\"")
+'^1
+^1
+(example)
+? Unbound variable: "example"
+'"           "
+           
+;          aaa
+\^H\\^H^H
+(reverse '(1 2 3 4))
+(4 3 2 1)
+(reverse '(1 2 3 . 4))
+? Argument to "reverse" must be a list
+(reverse 'a)
+? Argument to "reverse" must be a list
+(reverse (reverse (reverse '(1 2 3))))
+(3 2 1)
+(setq)
+()
+(define a)
+a
+(define b)
+b
+(define c)
+c
+(define test (lambda () (setq a 1 b 2 c 3)))
+(#Address () (LOADC #Address (setq a 1 b 2 c 3)))
+(test)
+3
+test
+(#Address () (EVALC (QUOTE 1 SETB #Address) EVALC (QUOTE 2 SETB #Address) JUMPC (QUOTE 3 SETB #Address)))
+(car 1)
+? Argument to "car", if not () or symbol, must be a pair
+(cdr 1)
+? Argument to "cdr", if not () or symbol, must be a pair
+(zerop 'a)
+? Argument to "zerop" must be a number
+Bytes: 28896/66432, Symbols: 98, Hits: 8212/10213, Collections: 863

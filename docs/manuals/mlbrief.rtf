@@ -1,0 +1,77 @@
+{\rtf1\ansi
+\deff0\uc1
+{\fonttbl
+{\f0\fswiss\fcharset0Helvetica{\*\falt Arial};}
+{\f1\fnil\fcharset0\fprq1Bitstream Charter;}
+{\f2\fnil\fcharset0\fprq1Liberation Sans{\*\falt Arial};}
+{\f3\fmodern\fcharset0\fprq1Courier 10 Pitch;}
+}
+{\colortbl
+;
+\red0\green0\blue0;
+\red128\green128\blue128;
+}
+{\stylesheet
+{\s1\fs24\snext1Normal;}
+{\s2\keepn\sb240\sa120\f2\fs28\sbasedon1\snext3Heading;}
+{\s3\sa120\fs24\sbasedon1\snext3Body Text;}
+{\s4\sa120\fs24\sbasedon3\snext4List;}
+{\s5\sb120\sa120\fs24\i\sbasedon1\snext5caption;}
+{\s6\fs24\sbasedon1\snext6Index;}
+{\s7\sb120\sa120\fs24\i\sbasedon1\snext7caption;}
+}
+{\*\generator Ted 2.23, Feb 4, 2013 (http://www.nllgg.nl/Ted);}
+{\info
+{\doccomm StarWriter}
+{\revtim\yr2019\mo1\dy29\hr11\min46\sec0}
+}
+\fet0\aftntj\aenddoc\aftnnrlc
+\sectd\sbknone
+\pard\s1\plain\fs32MakerLisp\par
+\fs24\par
+\f1The MakerLisp dialect of Lisp is a Lisp with the Scheme model of 
+expression evaluation, low-level macros and language functions with 
+Common Lisp spellings and semantics, C language arithmetic, and 
+standard C library functions.\par
+\par
+MakerLisp is time and space efficient. Some simple generational and 
+write barrier techniques keep the amount of garbage to collect, and 
+collection latency, low.\par
+\par
+The MakerLisp system is written in portable C, and just-in-time 
+interprets a tiny core language. All additional forms and functions are 
+provided via Lisp functions and macros.\par
+\f0\par
+MakerLisp Quick Language Reference\par
+\f1\par
+\f0\fs22Types\par
+\f1\fs24\par
+\f3\fs22Continuation, Integer, Pair, Real Number, Symbol, Vector\par
+\f1\fs24\par
+\f0\fs22Special Forms\par
+\f1\fs24\par
+\f3\fs22call/cc, case, cond, define, for, if, lambda, let, let*, macro, 
+progn, quote, setq, switch, while\par
+\f1\fs24\par
+\f0\fs22Functions\par
+\f1\fs24\par
+\f3\fs22`, ^, ~, <, <<, <=, =, >, >>, >=, |, -, /, *, &, %, +, append, 
+apply, assignedp, assoc, assq, atom, boundp, caaaar, caaadr, caaar, 
+caadar, caaddr, caadr, caar, cadaar, cadadr, cadar, caddar, cadddr, 
+caddr, cadr, car, cats, cdaaar, cdaadr, cdaar, cdadar, cdaddr, cdadr, 
+cdar, cddaar, cddadr, cddar, cdddar, cddddr, cdddr, cddr, cdr, cons, 
+constant, defer, div, eq, eql, error, eval, ffcall, for, gensym, 
+global, include, int2real, int2sym, integerp, length, less, let, let*, 
+list, list2vector, listp, mul, nlprint, not, nth, null, numberp, or, 
+pairp, print, quit, read, real2int, realp, reverse, rplaca, rplacd, 
+sub, sym2int, symbolp, vector, vector2list, vectorp, vlen, vref, vset, 
+zerop\par
+\f1\fs24\par
+\fs20... plus C library or other functions, via C foreign function 
+interface.\par
+\fs24\par
+\f0\fs22Utilities\par
+\f1\fs24\par
+\f3\fs22debug, discard, expand, load, trace\par
+\f1\fs24\par
+}
